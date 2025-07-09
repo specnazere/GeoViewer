@@ -10,6 +10,9 @@ using Device = SharpDX.Direct3D11.Device;
 
 namespace LayerSlicer
 {
+    /// <summary>
+    /// SharpDX MiniCube Direct3D 11 Sample
+    /// </summary>
     internal static class Program
     {
         private static Device _device;
@@ -41,6 +44,12 @@ namespace LayerSlicer
                 SwapEffect = SwapEffect.Discard,
                 Usage = Usage.RenderTargetOutput
             };
+
+            // Used for debugging dispose object references
+            // Configuration.EnableObjectTracking = true;
+
+            // Disable throws on shader compilation errors
+            //Configuration.ThrowOnShaderCompileError = false;
 
             // Create Device and SwapChain
             Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.None, desc, out _device, out _swapChain);
@@ -199,6 +208,11 @@ namespace LayerSlicer
         public static void Close()
         {
             _form.Close();
+        }
+
+        private static void Update(double dt)
+        {
+
         }
 
         public static Size GetRenderSize()

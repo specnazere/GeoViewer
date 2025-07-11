@@ -11,5 +11,7 @@
         public const double FovSensitivity = 0.9; // Value in range (0, 1)
 
         public const float StandartMouseWheelStep = 120;
+
+        public const float MouseMoveSensitivity = 0.03f;
     }
 }

@@ -6,6 +6,7 @@ namespace LayerSlicer
     {
         private static Vector3 _position = Vector3.Zero;
         private static Vector3 _rotation = Vector3.Zero;
+
         private static float _fov = float.Pi / 2f; // 90 degrees
 
         private static Matrix _positionMatrix = Matrix.Identity;
@@ -115,6 +116,23 @@ namespace LayerSlicer
         public static Matrix GetMatrix()
         {
             return _projMatrix;
+        }
+
+        internal static void Shift(float dy, float dx)
+        {
+            // Shift modyfing
+            var unrotatedShift = new Vector3(dx, -dy, 0);
+            var rotatedShift = Vector3.Transform(unrotatedShift,
+                Matrix.RotationY(-_rotation.Y) * 
+                Matrix.RotationX(-_rotation.Z));
+
+            // Applying shift
+            _position.X += rotatedShift.X;
+            _position.Y += rotatedShift.Y;
+            _position.Z += rotatedShift.Z;
+
+            // Updating matrice
+            UpdatePositionMatrix();
         }
     }
 }

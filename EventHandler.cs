@@ -7,8 +7,6 @@ namespace LayerSlicer
         private static bool _rotating = false;
         private static bool _mouseMoving = false;
 
-        private static Vector3 _cameraMove = Vector3.Zero;
-
         private static Vector2 _prevMouseLoc = Vector2.Zero;
 
         public static void KeyUp(object? sender, KeyEventArgs keys)
@@ -74,9 +72,11 @@ namespace LayerSlicer
 
         public static void MouseMove(object? sender, MouseEventArgs mouse)
         {
+            // Mouse updating
             Vector2 newMouseLoc = new Vector2(mouse.Location.X, mouse.Location.Y);
             Vector2 deltaMouseLoc = (_prevMouseLoc - newMouseLoc) * GlobalConsts.DegreesToRadians;
 
+            // Per input updates
             if (_rotating)
             {
                 GlobalCamera.GlobalRotate(
@@ -88,6 +88,7 @@ namespace LayerSlicer
                 GlobalCamera.Shift(new Vector3(deltaMouseLoc.X, -deltaMouseLoc.Y, 0));
             }
 
+            // Finalizing
             _prevMouseLoc = newMouseLoc;
         }
     }

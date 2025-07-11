@@ -81,23 +81,18 @@ namespace LayerSlicer
             UpdateLookAtMatrix();
         }
 
-        public static void GlobalRotate(float Pitch, float Yaw)
+        public static void GlobalRotate(float dPitch, float dYaw)
         {
-            // PitchLimiting
-            if (_rotation.X + Pitch > GlobalConsts.PitchLimit)
-            {
-                Pitch = GlobalConsts.PitchLimit - _rotation.X;
-            }
-            else if (_rotation.X + Pitch < -GlobalConsts.PitchLimit)
-            {
-                Pitch = GlobalConsts.PitchLimit + _rotation.X;
-            }
+            // dPitch limiting to not overcome camera's pitch limits
+            dPitch = Math.Clamp(dPitch,
+               -GlobalConsts.PitchLimit - _rotation.X, 
+                GlobalConsts.PitchLimit - _rotation.X);
             
             // Transform position
             var NewPosition = Vector3.Transform(_position, 
                 Matrix.RotationY(_rotation.Y) * 
-                Matrix.RotationX(-Pitch) *
-                Matrix.RotationY(-(_rotation.Y + Yaw)));
+                Matrix.RotationX(-dPitch) *
+                Matrix.RotationY(-(_rotation.Y + dYaw)));
 
             // Applying position
             _position.X = NewPosition.X;
@@ -105,8 +100,8 @@ namespace LayerSlicer
             _position.Z = NewPosition.Z;
 
             // Applying rotation
-            _rotation.Y += Yaw;
-            _rotation.X += Pitch;
+            _rotation.Y += dYaw;
+            _rotation.X += dPitch;
             
             // Updating matrices
             UpdateRotationMatrix();

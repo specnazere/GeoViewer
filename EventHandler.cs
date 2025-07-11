@@ -7,37 +7,63 @@ namespace LayerSlicer
         private static bool _rotating = false;
         private static bool _mouseMoving = false;
 
+        private static Vector3 _cameraMove = Vector3.Zero;
+
         private static Vector2 _prevMouseLoc = Vector2.Zero;
 
         public static void KeyUp(object? sender, KeyEventArgs keys)
         {
-            if (keys.KeyCode == Keys.Escape)
+            switch ((int)keys.KeyCode)
             {
+            case (int)Keys.Escape:
                 Program.Close();
+                break;
+
+            default:
+                break;
+            }
+        }
+
+        public static void KeyDown(object? sender, KeyEventArgs keys)
+        {
+            switch ((int)keys.KeyCode)
+            {
+            default:
+                break;
             }
         }
 
         public static void MouseUp(object? sender, MouseEventArgs mouse)
         {
-            if (mouse.Button == MouseButtons.Left)
+            switch (mouse.Button)
             {
+            case MouseButtons.Left:
                 _rotating = false;
-            }
-            if (mouse.Button == MouseButtons.Middle)
-            {
+                break;
+
+            case MouseButtons.Middle:
                 _mouseMoving = false;
+                break;
+
+            default:
+                break;
             }
         }
 
         public static void MouseDown(object? sender, MouseEventArgs mouse)
         {
-            if (mouse.Button == MouseButtons.Left)
+            switch (mouse.Button)
             {
+            case MouseButtons.Left:
                 _rotating = true;
-            }
-            if (mouse.Button == MouseButtons.Middle)
-            {
+                break;
+
+            case MouseButtons.Middle:
                 _mouseMoving = true;
+                break;
+
+            default:
+                break;
             }
         }
 
@@ -53,11 +79,13 @@ namespace LayerSlicer
 
             if (_rotating)
             {
-                GlobalCamera.GlobalRotate(deltaMouseLoc.Y, deltaMouseLoc.X);
+                GlobalCamera.GlobalRotate(
+                    deltaMouseLoc.Y * GlobalConsts.MouseRotateSensitivity, 
+                    deltaMouseLoc.X * GlobalConsts.MouseRotateSensitivity);
             }
             if (_mouseMoving)
             {
-                GlobalCamera.Shift(deltaMouseLoc.Y, deltaMouseLoc.X);
+                GlobalCamera.Shift(new Vector3(deltaMouseLoc.X, -deltaMouseLoc.Y, 0));
             }
 
             _prevMouseLoc = newMouseLoc;

@@ -113,13 +113,12 @@ namespace LayerSlicer
             return _projMatrix;
         }
 
-        internal static void Shift(float dy, float dx)
+        internal static void Shift(Vector3 dPos)
         {
             // Shift modyfing
-            var unrotatedShift = new Vector3(dx, -dy, 0);
-            var rotatedShift = Vector3.Transform(unrotatedShift,
-                Matrix.RotationY(-_rotation.Y) * 
-                Matrix.RotationX(-_rotation.Z));
+            var rotatedShift = Vector3.Transform(dPos,
+                Matrix.RotationX(-_rotation.X) * 
+                Matrix.RotationY(-_rotation.Y));
 
             // Applying shift
             _position.X += rotatedShift.X;

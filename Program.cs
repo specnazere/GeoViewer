@@ -1,10 +1,10 @@
-using System.Diagnostics;
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Windows;
+
 using Buffer = SharpDX.Direct3D11.Buffer;
 using Device = SharpDX.Direct3D11.Device;
 
@@ -77,8 +77,7 @@ namespace LayerSlicer
             context.PixelShader.Set(pixelShader);
 
             // Use clock
-            var clock = new Stopwatch();
-            clock.Start();
+            GlobalUpdater.Update();
 
             // Declare texture for rendering
             bool userResized = true;
@@ -89,6 +88,7 @@ namespace LayerSlicer
             // Setup handlers
             _form.Resize += (sender, args) => userResized = true;
             _form.KeyUp += EventHandler.KeyUp;
+            _form.KeyDown += EventHandler.KeyDown;
             _form.MouseDown += EventHandler.MouseDown;
             _form.MouseUp += EventHandler.MouseUp;
             _form.MouseMove += EventHandler.MouseMove;
@@ -145,11 +145,12 @@ namespace LayerSlicer
                     userResized = false;
                 }
 
-                var time = clock.ElapsedMilliseconds / 1000.0f;
-
                 // Clear views
                 context.ClearDepthStencilView(depthView, DepthStencilClearFlags.Depth, 1.0f, 0);
                 context.ClearRenderTargetView(_renderView, SharpDX.Color.Black);
+
+                // Update before render
+                GlobalUpdater.Update();
 
                 // Update WorldViewProj Matrix
                 var worldViewProj = GlobalCamera.GetMatrix();

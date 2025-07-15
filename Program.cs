@@ -1,3 +1,4 @@
+using LayerSlicer.Forms;
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
@@ -14,29 +15,24 @@ namespace LayerSlicer
     {
         private static Device _device;
         private static SwapChain _swapChain;
-        private static Form _form;
 
         private static RenderTargetView _renderView;
 
         //      [STAThread]
         private static void Main()
         {
-            _form = new Form()
-            {
-                Text = "SharpDX Color Transition",
-                ClientSize = new Size(800, 600),
-                StartPosition = FormStartPosition.CenterScreen
-            };
-
             // SwapChain description
             var desc = new SwapChainDescription()
             {
                 BufferCount = 1,
                 ModeDescription =
-                    new ModeDescription(_form.ClientSize.Width, _form.ClientSize.Height,
-                                        new Rational(60, 1), Format.R8G8B8A8_UNorm),
+                    new ModeDescription(
+                        MainWindow.GetRenderForm().ClientSize.Width, 
+                        MainWindow.GetRenderForm().ClientSize.Height,
+                        new Rational(60, 1), 
+                        Format.R8G8B8A8_UNorm),
                 IsWindowed = true,
-                OutputHandle = _form.Handle,
+                OutputHandle = MainWindow.GetRenderForm().Handle,
                 SampleDescription = new SampleDescription(1, 0),
                 SwapEffect = SwapEffect.Discard,
                 Usage = Usage.RenderTargetOutput
@@ -48,7 +44,7 @@ namespace LayerSlicer
 
             // Ignore all windows events
             var factory = _swapChain.GetParent<Factory>();
-            factory.MakeWindowAssociation(_form.Handle, WindowAssociationFlags.IgnoreAll);
+            factory.MakeWindowAssociation(MainWindow.GetRenderForm().Handle, WindowAssociationFlags.IgnoreAll);
 
             // Compile Vertex and Pixel shaders
             var vertexShaderByteCode = ShaderBytecode.CompileFromFile("shaders.fx", "VS", "vs_4_0");
@@ -79,26 +75,20 @@ namespace LayerSlicer
             // Use clock
             GlobalUpdater.Update();
 
-            // Declare texture for rendering
+            // Resize handling
             bool userResized = true;
+            MainWindow.GetRenderForm().Resize += (sender, args) => userResized = true;
+
+            // Declare texture for rendering
             Texture2D backBuffer = null;
             Texture2D depthBuffer = null;
             DepthStencilView depthView = null;
-
-            // Setup handlers
-            _form.Resize += (sender, args) => userResized = true;
-            _form.KeyUp += EventHandler.KeyUp;
-            _form.KeyDown += EventHandler.KeyDown;
-            _form.MouseDown += EventHandler.MouseDown;
-            _form.MouseUp += EventHandler.MouseUp;
-            _form.MouseMove += EventHandler.MouseMove;
-            _form.MouseWheel += EventHandler.WheelScroll;
 
             // Prepare global values
             GlobalCamera.Position = new Vector3(0, 0, -5f);
 
             // Main loop
-            RenderLoop.Run(_form, () =>
+            RenderLoop.Run(MainWindow.GetRenderForm(), () =>
             {
                 // If Form resized
                 if (userResized)
@@ -110,7 +100,11 @@ namespace LayerSlicer
                     Utilities.Dispose(ref depthView);
 
                     // Resize the backbuffer
-                    _swapChain.ResizeBuffers(desc.BufferCount, _form.ClientSize.Width, _form.ClientSize.Height, Format.Unknown, SwapChainFlags.None);
+                    _swapChain.ResizeBuffers(
+                        desc.BufferCount, 
+                        MainWindow.GetRenderForm().ClientSize.Width, 
+                        MainWindow.GetRenderForm().ClientSize.Height, 
+                        Format.Unknown, SwapChainFlags.None);
 
                     // Get the backbuffer from the swapchain
                     backBuffer = Texture2D.FromSwapChain<Texture2D>(_swapChain, 0);
@@ -124,8 +118,8 @@ namespace LayerSlicer
                         Format = Format.D32_Float_S8X24_UInt,
                         ArraySize = 1,
                         MipLevels = 1,
-                        Width = _form.ClientSize.Width,
-                        Height = _form.ClientSize.Height,
+                        Width = MainWindow.GetRenderForm().ClientSize.Width,
+                        Height = MainWindow.GetRenderForm().ClientSize.Height,
                         SampleDescription = new SampleDescription(1, 0),
                         Usage = ResourceUsage.Default,
                         BindFlags = BindFlags.DepthStencil,
@@ -138,7 +132,13 @@ namespace LayerSlicer
 
                     // Setup targets and viewport for rendering
                     GlobalCamera.UpdatePerspectiveMatrix();
-                    context.Rasterizer.SetViewport(new Viewport(0, 0, _form.ClientSize.Width, _form.ClientSize.Height, 0.0f, 1.0f));
+                    context.Rasterizer.SetViewport(new Viewport(
+                        0, 
+                        0, 
+                        MainWindow.GetRenderForm().ClientSize.Width, 
+                        MainWindow.GetRenderForm().ClientSize.Height, 
+                        0.0f, 
+                        1.0f));
                     context.OutputMerger.SetTargets(depthView, _renderView);
 
                     // We are done resizing
@@ -153,7 +153,7 @@ namespace LayerSlicer
                 GlobalUpdater.Update();
 
                 // Update WorldViewProj Matrix
-                var worldViewProj = GlobalCamera.GetMatrix();
+                var worldViewProj = GlobalModel.Matrix * GlobalCamera.GetMatrix();
                 worldViewProj.Transpose();
                 context.UpdateSubresource(ref worldViewProj, contantBuffer);
 
@@ -199,12 +199,12 @@ namespace LayerSlicer
 
         public static void Close()
         {
-            _form.Close();
+            MainWindow.GetRenderForm().Close();
         }
 
         public static Size GetRenderSize()
         {
-            return _form.ClientSize;
+            return MainWindow.GetRenderForm().ClientSize;
         }
     }
 }

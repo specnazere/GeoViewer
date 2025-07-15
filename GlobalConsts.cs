@@ -1,4 +1,6 @@
-﻿namespace LayerSlicer
+﻿using System.Reflection.Metadata.Ecma335;
+
+namespace LayerSlicer
 {
     internal static class GlobalConsts
     {
@@ -16,5 +18,14 @@
         public const float MouseRotateSensitivity = 0.75f;
 
         public const float CameraSpeed = 2.5f;
+
+        public const int StandartWidth = 900;
+        public const int StandartHeight = 600;
+
+        public const int InteractFormWidth = 250;
+        public const int ButtonHeight = 25;
+        public const int Padding = 2;
+        public const int LayerStepWidth = 5;
+        public const int BorderWidth = 1;
     }
 }

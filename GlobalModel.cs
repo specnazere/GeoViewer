@@ -7,6 +7,23 @@ namespace LayerSlicer
     internal static class GlobalModel
     {
         public static readonly Buffer CubeVertices;
+        public static Vector3 Position = Vector3.Zero;
+        public static Vector3 Rotation = Vector3.Zero;
+        public static Vector3 Scale = Vector3.One;
+
+        public static Matrix Matrix
+        {
+            get
+            { 
+                return Matrix.Transformation(
+                    Vector3.Zero,
+                    Quaternion.Identity,
+                    Scale,
+                    Vector3.Zero,
+                    Quaternion.RotationYawPitchRoll(Rotation.Z, Rotation.X, Rotation.Y),
+                    Position);
+            }
+        }
 
         static GlobalModel()
         {

@@ -2,7 +2,7 @@
 
 namespace LayerSlicer
 {
-    internal static class EventHandler
+    internal static class UserEventHandler
     {
         private static bool _rotating = false;
         private static bool _mouseMoving = false;

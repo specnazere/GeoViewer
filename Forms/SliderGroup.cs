@@ -1,14 +1,16 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace LayerSlicer.Forms
 {
     internal class SliderGroup : UserControl
     {
-        public readonly TrackBar[] Sliders = new TrackBar[3];
+        public readonly FloatSlider[] Sliders = new FloatSlider[3];
         public readonly TextBox[] TextBoxes = new TextBox[3];
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int Minimum
+        public float Minimum
         {
             get
             {
@@ -24,7 +26,7 @@ namespace LayerSlicer.Forms
         }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int Maximum
+        public float Maximum
         {
             get
             {
@@ -35,22 +37,6 @@ namespace LayerSlicer.Forms
                 foreach (var slider in Sliders)
                 {
                     slider.Maximum = value;
-                }
-            }
-        }
-
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int Step
-        {
-            get
-            {
-                return Sliders[0].TickFrequency;
-            }
-            set
-            {
-                foreach (var slider in Sliders)
-                {
-                    slider.TickFrequency = value;
                 }
             }
         }
@@ -96,13 +82,11 @@ namespace LayerSlicer.Forms
             for (int i = 0; i < 3; i++)
             {
                 // Вертикальные слайдеры
-                Sliders[i] = new TrackBar
+                Sliders[i] = new FloatSlider
                 {
-                    Orientation = Orientation.Vertical,
                     Minimum = -100,
                     Maximum = 100,
                     Value = 0,
-                    TickFrequency = 1,
                     Dock = DockStyle.Fill,
                 };
 
@@ -120,21 +104,31 @@ namespace LayerSlicer.Forms
 
                 // Привязка событий
                 int index = i; // Важно для замыкания
+                bool _isUpdating = false;
+
                 Sliders[index].ValueChanged += (s, e) =>
                 {
+                    if (_isUpdating) return;
+    
+                    _isUpdating = true;
                     TextBoxes[index].Text = Sliders[index].Value.ToString();
+                    _isUpdating = false;
                 };
 
-                TextBoxes[index].Validated += (s, e) =>
+                TextBoxes[index].TextChanged += (s, e) =>
                 {
-                    if (int.TryParse(TextBoxes[index].Text, out int value))
+                    if (_isUpdating) return;
+    
+                    _isUpdating = true;
+                    if (float.TryParse(TextBoxes[index].Text, out float value))
                     {
-                        Sliders[index].Value = Math.Max(Sliders[index].Minimum, Math.Min(Sliders[index].Maximum, value));
+                        Sliders[index].Value = Math.Clamp(value, Sliders[index].Minimum, Sliders[index].Maximum);
                     }
                     else
                     {
                         TextBoxes[index].Text = Sliders[index].Value.ToString();
                     }
+                    _isUpdating = false;
                 };
             }
 

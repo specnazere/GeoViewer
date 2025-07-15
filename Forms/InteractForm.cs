@@ -114,8 +114,6 @@
             SceneControlPanel.Add(ModelRotationControlPanel);
             SceneControlPanel.Add(ModelScaleControlPanel);
 
-
-
             // Add elements to form
             Add(ControlGuidePanel);
             Add(SceneControlPanel);

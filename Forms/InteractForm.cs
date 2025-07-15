@@ -123,7 +123,7 @@
         {
             textBox.Multiline = true;
             textBox.ReadOnly = true;
-            textBox.Font = new Font("Consolas", 12);
+            textBox.Font = GlobalConsts.BasicFont;
             textBox.ForeColor = Color.White;
             textBox.BackColor = Color.Black;
             textBox.Location = new Point(GlobalConsts.Padding, GlobalConsts.Padding);

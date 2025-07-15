@@ -27,5 +27,7 @@ namespace LayerSlicer
         public const int Padding = 2;
         public const int LayerStepWidth = 5;
         public const int BorderWidth = 1;
+
+        public static readonly Font BasicFont = new Font("Consolas", 12);
     }
 }

@@ -95,6 +95,7 @@ namespace LayerSlicer.Forms
                 {
                     Dock = DockStyle.Fill,
                     TextAlign = HorizontalAlignment.Center,
+                    Font = GlobalConsts.BasicFont,
                     Text = "0"
                 };
 

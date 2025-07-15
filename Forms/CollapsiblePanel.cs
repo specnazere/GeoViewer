@@ -5,7 +5,8 @@
         protected string _title;
         protected Panel _content;
         protected bool _isCollapsed;
-        protected Button _header;
+        protected TextBox _header;
+        protected Button _button;
 
         public CollapsiblePanel(string title)
         {
@@ -14,15 +15,14 @@
             Padding = Padding.Empty;
             Margin = Padding.Empty;
 
-            // Header button setup
-            _header = new Button
+            _button = new Button
             {
-                TextAlign = ContentAlignment.MiddleLeft,
-                Text = $" {title}",
-                Location = new Point(0, 0),
                 FlatStyle = FlatStyle.Flat,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Text = $"▶",
+                Location = new Point(0, 0),
                 Height = GlobalConsts.ButtonHeight,
-                Width = Width,
+                Width =  GlobalConsts.ButtonHeight - GlobalConsts.BorderWidth,
                 BackColor = Color.White,
                 ForeColor = Color.Black,
                 Font = new Font("Consolas", 12),
@@ -30,13 +30,31 @@
                 Margin = Padding.Empty,
                 Parent = this,
             };
-            _header.FlatAppearance.BorderSize = 2;
-            _header.Click += (s, e) => Toggle();
+
+            // Header button setup
+            _header = new TextBox
+            {
+                TextAlign = HorizontalAlignment.Left,
+                Text = $" {title}",
+                Location = new Point(GlobalConsts.ButtonHeight - GlobalConsts.BorderWidth, 0),
+                Height = GlobalConsts.ButtonHeight,
+                Width = Width - GlobalConsts.ButtonHeight + GlobalConsts.BorderWidth,
+                BorderStyle = BorderStyle.FixedSingle,
+                BackColor = Color.Black,
+                ForeColor = Color.White,
+                ReadOnly = true,
+                Font = new Font("Consolas", 12),
+                Padding = Padding.Empty,
+                Margin = Padding.Empty,
+                Parent = this,
+            };
+            _button.FlatAppearance.BorderSize = 0;
+            _button.Click += (s, e) => Toggle();
 
             // Content panel setup
             _content = new VerticalStackPanel
             {
-                Location = new Point(GlobalConsts.LayerStepWidth, _header.Height),
+                Location = new Point(GlobalConsts.LayerStepWidth, _button.Height + GlobalConsts.Padding),
                 AutoSize = true,
                 Width = Width - GlobalConsts.Padding - GlobalConsts.LayerStepWidth,
                 Height = 0,
@@ -69,6 +87,7 @@
 
             Controls.Add(_content);
             Controls.Add(_header);
+            Controls.Add(_button);
 
             Toggle();
         }
@@ -77,8 +96,8 @@
         {
             _content.Visible = _isCollapsed;
             _isCollapsed = !_isCollapsed;
-            _header.Text = _isCollapsed ? $"▶ {_title}" : $"▼ {_title}";
-            Height = _header.Height + (_isCollapsed ? 0 : _content.Height);
+            _button.Text = _isCollapsed ? $"▶" : $"▼";
+            RecalibrateSize();
         }
 
         public void Add(Control element)
@@ -106,7 +125,7 @@
             }
         }
 
-        private void RecalibrateSize()
+        protected virtual void RecalibrateSize()
         {
             int y = 0;
             foreach (Control control in _content.Controls)
@@ -117,7 +136,7 @@
                 y += control.Height;
             }
 
-            Height = y + _header.Height + GlobalConsts.Padding;
+            Height = y + _button.Height + GlobalConsts.Padding;
             _content.Height = Height;
         }
     }

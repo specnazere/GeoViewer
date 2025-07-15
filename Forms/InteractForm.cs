@@ -130,5 +130,12 @@
             textBox.BorderStyle = BorderStyle.None;
             textBox.Margin = Padding.Empty;
         }
+
+        protected override void RecalibrateSize()
+        {
+            base.RecalibrateSize();
+            Height += GlobalConsts.Padding;
+            _content.Height += GlobalConsts.Padding;
+        }
     }
 }

@@ -2,13 +2,43 @@
 {
     internal class InteractForm : CollapsiblePanel
     {
+        private ScrollBar _scrollBar;
+        private bool _recalHeight = false;
+
+        private int _lastInnerWidth = 0;
+        private int _innerWidth = 0;
+
         public InteractForm() : base("Интерфейс")
         {
             // Base setup
             Text = "Interact";
+
+            _scrollBar = new ScrollBar()
+            {
+                Visible = false,
+                Width = GlobalConsts.ScrollBarWidth,
+            };
+
+            Controls.Add(_scrollBar);
+
+            _scrollBar.Scrolled += (sender, e) =>
+            {
+                //RecalibrateHeight();
+                _content.Location = new Point(GlobalConsts.LayerStepWidth, _button.Height + GlobalConsts.Padding - _scrollBar.Offset);
+            };
+
+            _scrollBar.VisibleChanged += (sender, e) =>
+            {
+                _scrollBar.Height = Program.GetRenderSize().Height - _button.Height;
+                _scrollBar.Location = new Point(Width - GlobalConsts.ScrollBarWidth, _button.Height);
+            };
+
+            _scrollBar.SetScrollable(_content);
+
             //TopLevel = false;
             BackColor = Color.Black;
             BorderStyle = BorderStyle.FixedSingle;
+            _innerWidth = GlobalConsts.InteractFormWidth;
             Size = new Size(GlobalConsts.InteractFormWidth, GlobalConsts.ButtonHeight);
 
             // Control setup
@@ -67,7 +97,7 @@
             {
                 Value = 0,
                 Minimum = -180,
-                Maximum =  180,
+                Maximum = 180,
             };
             RotationControlSliders.Sliders[0].ValueChanged += (sender, e) =>
             {
@@ -131,11 +161,78 @@
             textBox.Margin = Padding.Empty;
         }
 
-        protected override void RecalibrateSize()
+        protected override void RecalibrateHeight()
         {
-            base.RecalibrateSize();
+            _recalHeight = true;
+            base.RecalibrateHeight();
+
             Height += GlobalConsts.Padding;
             _content.Height += GlobalConsts.Padding;
+
+            if (_scrollBar != null)
+            {
+                if (Height > Program.GetRenderSize().Height)
+                {
+                    ActivateScrollBar();
+                }
+                else
+                {
+                    DeactivateScrollBar();
+                }
+            }
+
+            _recalHeight = false;
+        }
+
+        protected override void OnSizeChanged(object? sender, EventArgs e)
+        {
+            if (_recalHeight) return;
+
+            RecalibrateHeight();
+            UpdateInnersWidth();
+        }
+
+        protected void UpdateInnersWidth()
+        {
+            if (_lastInnerWidth == _innerWidth) return;
+
+            _header.Width = Width - GlobalConsts.Padding - _button.Width;
+            _content.Width = _innerWidth;
+
+            foreach (Control control in _content.Controls)
+            {
+                control.Width = _innerWidth;
+
+                if (control.GetType() == typeof(SelfStretchingTextBox))
+                {
+                    control.Width -= GlobalConsts.Padding;
+                }
+                else if (control.GetType() == typeof(SliderGroup))
+                {
+                    control.Width -= 4;
+                }
+            }
+            _lastInnerWidth = _innerWidth;
+        }
+
+        protected void ActivateScrollBar()
+        {
+            if (_scrollBar.Visible) return;
+
+            _scrollBar.Visible = true;
+            _innerWidth = Width - _scrollBar.Width - GlobalConsts.LayerStepWidth;
+
+            UpdateInnersWidth();
+        }
+
+        protected void DeactivateScrollBar()
+        {
+            if (!_scrollBar.Visible) return;
+
+            _scrollBar.Visible = false;
+            _innerWidth = Width - GlobalConsts.LayerStepWidth;
+
+            UpdateInnersWidth();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace LayerSlicer.Forms
+﻿using System.Drawing;
+
+namespace LayerSlicer.Forms
 {
     public class CollapsiblePanel : Panel
     {
@@ -7,6 +9,8 @@
         protected bool _isCollapsed;
         protected TextBox _header;
         protected Button _button;
+
+        public event EventHandler? ContainmentHeightChange;
 
         public CollapsiblePanel(string title)
         {
@@ -55,7 +59,6 @@
             _content = new VerticalStackPanel
             {
                 Location = new Point(GlobalConsts.LayerStepWidth, _button.Height + GlobalConsts.Padding),
-                AutoSize = true,
                 Width = Width - GlobalConsts.Padding - GlobalConsts.LayerStepWidth,
                 Height = 0,
                 Padding = Padding.Empty,
@@ -63,31 +66,11 @@
                 Parent = this,
             };
 
-            SizeChanged += (sender, e) =>
-            {
-                _header.Width = Width - GlobalConsts.Padding;
-                _content.Width = Width - GlobalConsts.LayerStepWidth;
+            SizeChanged += OnSizeChanged;
 
-                foreach (Control control in _content.Controls)
-                {
-                    control.Width = Width - GlobalConsts.LayerStepWidth;
-
-                    if (control.GetType() == typeof(SelfStretchingTextBox))
-                    {
-                        control.Width -= GlobalConsts.Padding;
-                        control.Location = new Point(control.Location.X + GlobalConsts.Padding, control.Location.Y);
-                    }
-                    else if (control.GetType() == typeof(SliderGroup))
-                    {
-                        control.Width -= 4;
-                    }
-
-                }
-            };
-
-            Controls.Add(_content);
             Controls.Add(_header);
             Controls.Add(_button);
+            Controls.Add(_content);
 
             Toggle();
         }
@@ -97,7 +80,7 @@
             _content.Visible = _isCollapsed;
             _isCollapsed = !_isCollapsed;
             _button.Text = _isCollapsed ? $"▶" : $"▼";
-            RecalibrateSize();
+            RecalibrateHeight();
         }
 
         public void Add(Control element)
@@ -107,8 +90,14 @@
             element.Width = Width - GlobalConsts.Padding - GlobalConsts.LayerStepWidth;
             _content.Controls.Add(element);
             element.Parent = _content;
-            element.VisibleChanged += (sender, e) => RecalibrateSize();
-            element.SizeChanged += (sender, e) => RecalibrateSize();
+
+            if (element.GetType() == typeof(CollapsiblePanel))
+            {
+                ((CollapsiblePanel)element).ContainmentHeightChange += (sender, e) =>
+                {
+                    RecalibrateHeight();
+                };
+            }
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -117,15 +106,11 @@
 
             if (!_isCollapsed)
             {
-                using (var pen = new Pen(Color.FromArgb(100, 100, 100), GlobalConsts.BorderWidth))
-                {
-                    e.Graphics.DrawLine(pen, GlobalConsts.Padding, 0, GlobalConsts.Padding, Height);
-                    e.Graphics.DrawLine(pen, Width - 1, 0, Width - 1, Height);
-                }
+                e.Graphics.DrawLine(GlobalConsts.GrayBorderPen, GlobalConsts.Padding, 0, GlobalConsts.Padding, Height);
             }
         }
 
-        protected virtual void RecalibrateSize()
+        protected virtual void RecalibrateHeight()
         {
             int y = 0;
             foreach (Control control in _content.Controls)
@@ -137,7 +122,30 @@
             }
 
             Height = y + _button.Height + GlobalConsts.Padding;
-            _content.Height = Height;
+            _content.Height = y + GlobalConsts.Padding;
+
+            ContainmentHeightChange?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnSizeChanged(object? sender, EventArgs e)
+        {
+            _header.Width = Width - GlobalConsts.Padding - _button.Width;
+            _content.Width = Width - GlobalConsts.LayerStepWidth;
+
+            foreach (Control control in _content.Controls)
+            {
+                control.Width = Width - GlobalConsts.LayerStepWidth;
+
+                if (control.GetType() == typeof(SelfStretchingTextBox))
+                {
+                    control.Width -= GlobalConsts.Padding;
+                    control.Location = new Point(control.Location.X + GlobalConsts.Padding, control.Location.Y);
+                }
+                else if (control.GetType() == typeof(SliderGroup))
+                {
+                    control.Width -= GlobalConsts.Padding;
+                }
+            }
         }
     }
 }

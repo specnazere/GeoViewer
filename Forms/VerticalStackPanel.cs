@@ -11,7 +11,7 @@
             {
                 if (!control.Visible) continue;
 
-                control.Location = new Point(control.Location.X, y);
+                //control.Location = new Point(control.Location.X, y);
                 y += control.Height;
             }
 

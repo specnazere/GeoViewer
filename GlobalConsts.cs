@@ -27,7 +27,11 @@ namespace LayerSlicer
         public const int Padding = 2;
         public const int LayerStepWidth = 5;
         public const int BorderWidth = 1;
+        public const int ScrollBarWidth = 30;
 
         public static readonly Font BasicFont = new Font("Consolas", 12);
+
+        public static readonly Pen WhiteBorderPen = new Pen(Color.White, 1);
+        public static readonly Pen GrayBorderPen = new Pen(Color.Gray, 1);
     }
 }

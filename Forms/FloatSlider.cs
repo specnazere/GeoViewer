@@ -9,7 +9,6 @@ namespace LayerSlicer.Forms
         private float _value = 50;
         private float _fillValue = 0.5f;
         private bool _dragging = false;
-        private Rectangle _fillRect;
 
         public event EventHandler? ValueChanged;
 

@@ -1,11 +1,9 @@
-﻿using System.Security.Cryptography.Pkcs;
-
-namespace LayerSlicer.Forms
+﻿namespace LayerSlicer.Forms
 {
     internal class ScrollBar : Control
     {
         private int _contentSize = 10;
-        private int _offset;
+        private int _scrollerOffset;
 
         private int _scrollerHeight;
         private float _scale;
@@ -14,7 +12,7 @@ namespace LayerSlicer.Forms
 
         public int Offset
         {
-            get => (int)(_offset / _scale);
+            get => (int)(_scrollerOffset / _scale);
         }
 
         public event EventHandler? Scrolled;
@@ -33,7 +31,15 @@ namespace LayerSlicer.Forms
             SizeChanged += (sender, e) => RecalculateScroll();
             VisibleChanged += (sender, e) =>
             {
-                _offset = 0;
+                _scrollerOffset = 0;
+                Scrolled?.Invoke(this, EventArgs.Empty);
+                Invalidate();
+            };
+
+            MouseWheel += (sender, e) =>
+            {
+                Scroll(e.Delta / GlobalConsts.StandartMouseWheelStep * GlobalConsts.ScrollingSensitivity);
+                ((HandledMouseEventArgs)e).Handled = true;
             };
         }
 
@@ -42,11 +48,11 @@ namespace LayerSlicer.Forms
             base.OnPaint(e);
 
             var frameRect = new Rectangle(new Point(0, 0), new Size(Width, Height));
-            e.Graphics.DrawRectangle(GlobalConsts.WhiteBorderPen, frameRect);
+            e.Graphics.DrawRectangle(GlobalConsts.GrayBorderPen, frameRect);
 
             var scrollerRect = new Rectangle(
-                new Point(0, _offset),
-                new Size(Width, _scrollerHeight));
+                new Point(GlobalConsts.BorderWidth, _scrollerOffset),
+                new Size(Width - GlobalConsts.BorderWidth * 2, _scrollerHeight));
             e.Graphics.FillRectangle(Brushes.White, scrollerRect);
         }
 
@@ -76,8 +82,16 @@ namespace LayerSlicer.Forms
         {
             int bottomBound = Height - _scrollerHeight;
             mouseY -= _scrollerHeight / 2;
-            _offset = (int)Math.Max(0, Math.Min(bottomBound, mouseY));
+            _scrollerOffset = (int)Math.Max(0, Math.Min(bottomBound, mouseY));
 
+            Scrolled?.Invoke(this, EventArgs.Empty);
+            Invalidate();
+        }
+
+        public void Scroll(float Value)
+        {
+            int bottomBound = Height - _scrollerHeight;
+            _scrollerOffset = (int)Math.Max(0, Math.Min(bottomBound, _scrollerOffset + Value));
             Scrolled?.Invoke(this, EventArgs.Empty);
             Invalidate();
         }
@@ -86,6 +100,13 @@ namespace LayerSlicer.Forms
         {
             _scrollerHeight = Height * Height / _contentSize;
             _scale = _scrollerHeight / (float)Height;
+
+            if (Offset + Height > _contentSize && Height < _contentSize)
+            {
+                _scrollerOffset = (int)((_contentSize - Height) * _scale);
+                Scrolled?.Invoke(this, EventArgs.Empty);
+                Invalidate();
+            }
         }
 
         public void SetScrollable(Control container)
@@ -94,6 +115,7 @@ namespace LayerSlicer.Forms
             {
                 _contentSize = container.Height;
                 RecalculateScroll();
+                Invalidate();
             };
         }
     }

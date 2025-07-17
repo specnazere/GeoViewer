@@ -1,4 +1,6 @@
-﻿namespace LayerSlicer.Forms
+﻿using System.Windows.Forms;
+
+namespace LayerSlicer.Forms
 {
     internal class SelfStretchingTextBox : TextBox
     {
@@ -15,8 +17,8 @@
             {
                 using (var g = txt.CreateGraphics())
                 {
-                    var size = g.MeasureString(txt.Text, txt.Font, txt.Width);
-                    txt.Height = (int)Math.Ceiling(size.Height);
+                    var size = g.MeasureString(txt.Text, txt.Font, txt.Width + 1);
+                    txt.Height = (int)Math.Ceiling(size.Height) + GlobalConsts.Padding;
                 }
             }
         }

@@ -7,6 +7,7 @@ namespace LayerSlicer.Forms
     {
         public readonly FloatSlider[] Sliders = new FloatSlider[3];
         public readonly TextBox[] TextBoxes = new TextBox[3];
+        public readonly Button[] ResetButtons = new Button[3];
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public float Minimum
@@ -52,6 +53,18 @@ namespace LayerSlicer.Forms
             }
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public int SetReset
+        {
+            set
+            {
+                foreach (var slider in Sliders)
+                {
+                    slider.SetReset = value;
+                }
+            }
+        }
+
         public SliderGroup()
         {
             // Настройка формы
@@ -74,12 +87,25 @@ namespace LayerSlicer.Forms
             }
 
             // Добавляем строки
-            tableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 85)); // Для слайдеров
+            tableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 70)); // Для слайдеров
             tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));    // Для полей ввода
+            tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));    // Для кнопок ресета
 
             // Создаем и настраиваем элементы
             for (int i = 0; i < 3; i++)
             {
+                // Кнопки
+                ResetButtons[i] = new Button
+                {
+                    FlatStyle = FlatStyle.Flat,
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    BackColor = Color.White,
+                    ForeColor = Color.Black,
+                    Dock = DockStyle.Fill,
+                    Text = "RESET",
+                    Font = GlobalConsts.BasicFont,
+                };
+
                 // Вертикальные слайдеры
                 Sliders[i] = new FloatSlider
                 {
@@ -98,9 +124,16 @@ namespace LayerSlicer.Forms
                     Text = "0"
                 };
 
+                var indexCopy = i;
+                ResetButtons[i].Click += (sender, e) =>
+                {
+                    Sliders[indexCopy].Reset();
+                };
+
                 // Добавляем в таблицу
                 tableLayout.Controls.Add(Sliders[i], i, 0);
                 tableLayout.Controls.Add(TextBoxes[i], i, 1);
+                tableLayout.Controls.Add(ResetButtons[i], i, 2);
 
                 // Привязка событий
                 int index = i; // Важно для замыкания
@@ -133,6 +166,14 @@ namespace LayerSlicer.Forms
             }
 
             Controls.Add(tableLayout);
+        }
+
+        public void Reset()
+        {
+            foreach (var slider in Sliders)
+            {
+                slider.Reset();
+            }
         }
     }
 }

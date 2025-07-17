@@ -3,10 +3,8 @@
     internal class InteractForm : CollapsiblePanel
     {
         private ScrollBar _scrollBar;
-        private bool _recalHeight = false;
 
-        private int _lastInnerWidth = 0;
-        private int _innerWidth = 0;
+        protected int _innerWidth;
 
         public InteractForm() : base("Интерфейс")
         {
@@ -33,12 +31,28 @@
                 _scrollBar.Location = new Point(Width - GlobalConsts.ScrollBarWidth, _button.Height);
             };
 
+            MainWindow.GetRenderForm().SizeChanged += (sender, e) =>
+            {
+                _scrollBar.Height = Program.GetRenderSize().Height - _button.Height;
+
+                if (Height > Program.GetRenderSize().Height)
+                {
+                    ActivateScrollBar();
+                }
+                else
+                {
+                    DeactivateScrollBar();
+                }
+
+                _scrollBar.Invalidate();
+            };
+
             _scrollBar.SetScrollable(_content);
 
             //TopLevel = false;
             BackColor = Color.Black;
             BorderStyle = BorderStyle.FixedSingle;
-            _innerWidth = GlobalConsts.InteractFormWidth;
+            _innerWidth = GlobalConsts.InteractFormWidth - GlobalConsts.LayerStepWidth - GlobalConsts.Padding;
             Size = new Size(GlobalConsts.InteractFormWidth, GlobalConsts.ButtonHeight);
 
             // Control setup
@@ -70,10 +84,11 @@
             ModelPositionControlTextBox.Text = "Слайдеры для перемещения по осям X, Y и Z соотвественно \"F\"";
             var PositionControlSliders = new SliderGroup()
             {
-                Value = 0,
+                SetReset = 0,
                 Minimum = -100,
                 Maximum = 100,
             };
+            PositionControlSliders.Reset();
             PositionControlSliders.Sliders[0].ValueChanged += (sender, e) =>
             {
                 GlobalModel.Position.X = PositionControlSliders.Sliders[0].Value;
@@ -95,10 +110,11 @@
             ModelRotationControlTextBox.Text = "Слайдеры для вращения по осям X, Y и Z соотвественно \"F\"";
             var RotationControlSliders = new SliderGroup()
             {
-                Value = 0,
+                SetReset = 0,
                 Minimum = -180,
                 Maximum = 180,
             };
+            RotationControlSliders.Reset();
             RotationControlSliders.Sliders[0].ValueChanged += (sender, e) =>
             {
                 GlobalModel.Rotation.X = RotationControlSliders.Sliders[0].Value * GlobalConsts.DegreesToRadians;
@@ -120,10 +136,11 @@
             ModelScaleControlTextBox.Text = "Слайдеры для масштабирования по осям X, Y и Z соотвественно \"F\"";
             var ScaleControlSliders = new SliderGroup()
             {
-                Value = 1,
+                SetReset = 1,
                 Minimum = -10,
                 Maximum = 10,
             };
+            ScaleControlSliders.Reset();
             ScaleControlSliders.Sliders[0].ValueChanged += (sender, e) =>
             {
                 GlobalModel.Scale.X = ScaleControlSliders.Sliders[0].Value;
@@ -147,6 +164,8 @@
             // Add elements to form
             Add(ControlGuidePanel);
             Add(SceneControlPanel);
+
+            OnSizeChanged(null, EventArgs.Empty);
         }
 
         private void SetupTextBox(TextBox textBox)
@@ -156,20 +175,17 @@
             textBox.Font = GlobalConsts.BasicFont;
             textBox.ForeColor = Color.White;
             textBox.BackColor = Color.Black;
-            textBox.Location = new Point(GlobalConsts.Padding, GlobalConsts.Padding);
+            textBox.Location = new Point(GlobalConsts.Padding, 0);
             textBox.BorderStyle = BorderStyle.None;
+            textBox.Padding = new Padding(0, 0, 0, 50);
             textBox.Margin = Padding.Empty;
         }
 
         protected override void RecalibrateHeight()
         {
-            _recalHeight = true;
             base.RecalibrateHeight();
 
-            Height += GlobalConsts.Padding;
-            _content.Height += GlobalConsts.Padding;
-
-            if (_scrollBar != null)
+            if (_scrollBar != null && !_isCollapsed)
             {
                 if (Height > Program.GetRenderSize().Height)
                 {
@@ -180,39 +196,6 @@
                     DeactivateScrollBar();
                 }
             }
-
-            _recalHeight = false;
-        }
-
-        protected override void OnSizeChanged(object? sender, EventArgs e)
-        {
-            if (_recalHeight) return;
-
-            RecalibrateHeight();
-            UpdateInnersWidth();
-        }
-
-        protected void UpdateInnersWidth()
-        {
-            if (_lastInnerWidth == _innerWidth) return;
-
-            _header.Width = Width - GlobalConsts.Padding - _button.Width;
-            _content.Width = _innerWidth;
-
-            foreach (Control control in _content.Controls)
-            {
-                control.Width = _innerWidth;
-
-                if (control.GetType() == typeof(SelfStretchingTextBox))
-                {
-                    control.Width -= GlobalConsts.Padding;
-                }
-                else if (control.GetType() == typeof(SliderGroup))
-                {
-                    control.Width -= 4;
-                }
-            }
-            _lastInnerWidth = _innerWidth;
         }
 
         protected void ActivateScrollBar()
@@ -233,6 +216,11 @@
             _innerWidth = Width - GlobalConsts.LayerStepWidth;
 
             UpdateInnersWidth();
+        }
+
+        protected override int GetInnerWidth()
+        {
+            return _innerWidth;
         }
     }
 }

@@ -33,5 +33,7 @@ namespace LayerSlicer
 
         public static readonly Pen WhiteBorderPen = new Pen(Color.White, 1);
         public static readonly Pen GrayBorderPen = new Pen(Color.Gray, 1);
+
+        public const int ScrollingSensitivity = -15; // Negative to invert direction
     }
 }

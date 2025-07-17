@@ -18,12 +18,12 @@ namespace LayerSlicer
             _interactForm.Show();
 
             // Setup handlers
-            _renderForm.KeyUp += UserEventHandler.KeyUp;
-            _renderForm.KeyDown += UserEventHandler.KeyDown;
-            _renderForm.MouseDown += UserEventHandler.MouseDown;
-            _renderForm.MouseUp += UserEventHandler.MouseUp;
-            _renderForm.MouseMove += UserEventHandler.MouseMove;
-            _renderForm.MouseWheel += UserEventHandler.WheelScroll;
+            _renderForm.KeyUp += UserEventRouter.KeyUp;
+            _renderForm.KeyDown += UserEventRouter.KeyDown;
+            _renderForm.MouseDown += UserEventRouter.MouseDown;
+            _renderForm.MouseUp += UserEventRouter.MouseUp;
+            _renderForm.MouseMove += UserEventRouter.MouseMove;
+            _renderForm.MouseWheel += UserEventRouter.WheelScroll;
         }
 
         public static RenderForm GetRenderForm()

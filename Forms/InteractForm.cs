@@ -8,7 +8,7 @@ namespace LayerSlicer.Forms
 
         protected int _innerWidth;
 
-        public InteractForm() : base("Интерактивная панель")
+        public InteractForm() : base("Интерактивная панель", true)
         {
             // Base setup
             Text = "Interact";
@@ -66,7 +66,9 @@ namespace LayerSlicer.Forms
             Size = new Size(GlobalConsts.InteractFormWidth, GlobalConsts.ButtonHeight);
 
             // Control setup
-            var ControlInfoPanel = new CollapsiblePanel("Справка по интерфейсу");
+            CollapsiblePanel preActivated;
+
+            var ControlInfoPanel = new CollapsiblePanel("Справка по интерфейсу", true);
             Add(ControlInfoPanel);
             {
                 var HotkeysInfoPanel = new CollapsiblePanel("Горячие клавиши");
@@ -129,7 +131,7 @@ namespace LayerSlicer.Forms
                     SlidersInfoPanel.Add(SlidersInfoText);
                 }
 
-                var HeadersInfoPanel = new CollapsiblePanel("Справка по заголовкам");
+                var HeadersInfoPanel = new CollapsiblePanel("Справка по заголовкам", true);
                 ControlInfoPanel.Add(HeadersInfoPanel);
                 {
                     var HeadersInfoText = new SelfStretchingLabel();
@@ -138,6 +140,7 @@ namespace LayerSlicer.Forms
                         "ЛКМ на кнопку слева от заголовка, что бы развернуть/свернуть панель";
                     HeadersInfoPanel.Add(HeadersInfoText);
                 }
+                preActivated = HeadersInfoPanel;
             }
 
             // Scene interact setup
@@ -464,6 +467,8 @@ namespace LayerSlicer.Forms
                 }
             }
             OnSizeChanged(null, EventArgs.Empty);
+
+            preActivated.RecalibrateHeight();
         }
 
         private void SetupLabel(Label label)
@@ -477,7 +482,7 @@ namespace LayerSlicer.Forms
             label.Margin = Padding.Empty;
         }
 
-        protected override void RecalibrateHeight()
+        internal override void RecalibrateHeight()
         {
             base.RecalibrateHeight();
 

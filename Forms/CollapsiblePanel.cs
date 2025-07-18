@@ -16,7 +16,7 @@
 
         public event EventHandler? ContainmentHeightChange;
 
-        public CollapsiblePanel(string title)
+        public CollapsiblePanel(string title, bool state = false)
         {
             // Base setup
             Height = GlobalConsts.ButtonHeight;
@@ -66,6 +66,12 @@
 
             // Activate for first time
             Toggle();
+
+            if (state)
+            {
+                Toggle();
+                ((HeaderButton)_button).OnClick();
+            }
         }
 
         public void Toggle()
@@ -104,7 +110,7 @@
             }
         }
 
-        protected virtual void RecalibrateHeight()
+        internal virtual void RecalibrateHeight()
         {
             int y = 0;
             foreach (Control control in _content.Controls)

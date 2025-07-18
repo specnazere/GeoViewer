@@ -44,11 +44,7 @@
             }
 
             // Handle click event
-            Click += (sender, e) =>
-            {
-                _toggled = !_toggled;
-                Invalidate();
-            };
+            Click += (sender, e) => OnClick();
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -70,6 +66,12 @@
             {
                 e.Graphics.FillPolygon(Brushes.Black, _triangleToRightPoints);
             }
+        }
+
+        public void OnClick()
+        {
+            _toggled = !_toggled;
+            Invalidate();
         }
     }
 }

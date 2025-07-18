@@ -16,7 +16,8 @@ namespace LayerSlicer
         public const float StandartMouseWheelStep = 120;
 
         public const float MouseMoveSensitivity = 0.03f;
-        public const float MouseRotateSensitivity = 0.75f;
+        public const float ModelRotateSensitivity = 30f;
+        public const float MouseRotateSensitivity = 0.2f;
 
         public const float CameraSpeed = 2.5f;
 
@@ -82,5 +83,8 @@ namespace LayerSlicer
             };
 
         public static readonly Vector3 StandartCameraPostion = new(0, 0, -5);
+
+        // Crutch to remove
+        public static readonly Vector2 Windows10MainFormPosition = new(8f, 31f); 
     }
 }

@@ -23,18 +23,21 @@ namespace LayerSlicer
             var dt = _clock.ElapsedMilliseconds * 0.001f - _last;
 
             // Updating camera
-            var moveVector = Vector3.Zero;
-
-            if ((GetAsyncKeyState(Keys.W) & 0x8000) != 0) { moveVector.Z += 1; }
-            if ((GetAsyncKeyState(Keys.S) & 0x8000) != 0) { moveVector.Z -= 1; }
-            if ((GetAsyncKeyState(Keys.A) & 0x8000) != 0) { moveVector.X -= 1; }
-            if ((GetAsyncKeyState(Keys.D) & 0x8000) != 0) { moveVector.X += 1; }
-
-            if (moveVector != Vector3.Zero)
+            if (UserEventRouter.IsInFlyMode)
             {
-                moveVector = Vector3.Normalize(moveVector);
+                var moveVector = Vector3.Zero;
 
-                GlobalCamera.Shift(moveVector * (float)dt * GlobalConsts.CameraSpeed);
+                if ((GetAsyncKeyState(Keys.W) & 0x8000) != 0) { moveVector.Z += 1; }
+                if ((GetAsyncKeyState(Keys.S) & 0x8000) != 0) { moveVector.Z -= 1; }
+                if ((GetAsyncKeyState(Keys.A) & 0x8000) != 0) { moveVector.X -= 1; }
+                if ((GetAsyncKeyState(Keys.D) & 0x8000) != 0) { moveVector.X += 1; }
+
+                if (moveVector != Vector3.Zero)
+                {
+                    moveVector = Vector3.Normalize(moveVector);
+
+                    GlobalCamera.Shift(moveVector * (float)dt * GlobalConsts.CameraSpeed);
+                }
             }
 
             // Finalising

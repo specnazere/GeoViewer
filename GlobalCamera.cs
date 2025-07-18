@@ -48,10 +48,7 @@ namespace LayerSlicer
 
         public static void GlobalRotate(float dPitch, float dYaw)
         {
-            // dPitch limiting to not overcome camera's pitch limits
-            dPitch = Math.Clamp(dPitch,
-               -GlobalConsts.PitchLimit - _rotation.X, 
-                GlobalConsts.PitchLimit - _rotation.X);
+            dPitch = ClampPitch(dPitch);
             
             // Transform position
             Position = (Vector3)Vector3.Transform(_position, 
@@ -80,6 +77,7 @@ namespace LayerSlicer
 
         private static float ClampPitch(float dPitch)
         {
+            // dPitch limiting to not overcome camera's pitch limits
             dPitch = Math.Clamp(dPitch,
                -GlobalConsts.PitchLimit - _rotation.X,
                 GlobalConsts.PitchLimit - _rotation.X);

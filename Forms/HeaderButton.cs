@@ -8,11 +8,10 @@
 
         public HeaderButton() : base()
         { 
-            Size = new Size(GlobalConsts.ButtonHeight, GlobalConsts.ButtonHeight + GlobalConsts.BorderWidth);
+            Size = new Size(GlobalConsts.ButtonHeight - GlobalConsts.BorderWidth, GlobalConsts.ButtonHeight);
 
             FlatStyle = FlatStyle.Flat;
             TextAlign = ContentAlignment.MiddleLeft;
-            Location = new Point(0, 0);
             BackColor = Color.White;
             ForeColor = Color.Black;
             Padding = Padding.Empty;

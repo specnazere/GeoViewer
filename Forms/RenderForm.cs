@@ -4,8 +4,11 @@
     {
         public RenderForm()
         {
+            KeyPreview = true;
             Text = "SharpDX Color Transition";
-            ClientSize = new Size(600, 600);
+            ClientSize = new Size(
+                GlobalConsts.StandartWidth, 
+                GlobalConsts.StandartHeight);
             StartPosition = FormStartPosition.CenterScreen;
         }
     }

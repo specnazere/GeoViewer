@@ -2,7 +2,7 @@
 
 namespace LayerSlicer
 {
-    internal static class UserEventHandler
+    internal static class UserEventRouter
     {
         private static bool _rotating = false;
         private static bool _mouseMoving = false;
@@ -15,6 +15,15 @@ namespace LayerSlicer
             {
             case (int)Keys.Escape:
                 Program.Close();
+                break;
+
+            case (int)Keys.R:
+                GlobalModel.Position = Vector3.Zero;
+                GlobalModel.Rotation = Vector3.Zero;
+                GlobalModel.Scale = Vector3.One;
+
+                GlobalCamera.Position = GlobalConsts.StandartCameraPostion;
+                GlobalCamera.Rotation = Vector3.Zero;
                 break;
 
             default:

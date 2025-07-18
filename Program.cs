@@ -1,4 +1,3 @@
-using LayerSlicer.Forms;
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
@@ -35,12 +34,14 @@ namespace LayerSlicer
                 OutputHandle = MainWindow.GetRenderForm().Handle,
                 SampleDescription = new SampleDescription(1, 0),
                 SwapEffect = SwapEffect.Discard,
-                Usage = Usage.RenderTargetOutput
+                Usage = Usage.RenderTargetOutput,
             };
 
             // Create Device and SwapChain
             Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.None, desc, out _device, out _swapChain);
             var context = _device.ImmediateContext;
+
+            GlobalModel.VerticesBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalConsts.CubeVertices);
 
             // Ignore all windows events
             var factory = _swapChain.GetParent<Factory>();
@@ -67,7 +68,7 @@ namespace LayerSlicer
             // Prepare All the stages
             context.InputAssembler.InputLayout = layout;
             context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(GlobalModel.CubeVertices, Utilities.SizeOf<Vector4>() * 2, 0));
+            context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(GlobalModel.VerticesBuffer, Utilities.SizeOf<Vector4>() * 2, 0));
             context.VertexShader.SetConstantBuffer(0, contantBuffer);
             context.VertexShader.Set(vertexShader);
             context.PixelShader.Set(pixelShader);
@@ -85,7 +86,7 @@ namespace LayerSlicer
             DepthStencilView depthView = null;
 
             // Prepare global values
-            GlobalCamera.Position = new Vector3(0, 0, -5f);
+            GlobalCamera.Position = GlobalConsts.StandartCameraPostion;
 
             // Main loop
             RenderLoop.Run(MainWindow.GetRenderForm(), () =>
@@ -131,7 +132,6 @@ namespace LayerSlicer
                     depthView = new DepthStencilView(_device, depthBuffer);
 
                     // Setup targets and viewport for rendering
-                    GlobalCamera.UpdatePerspectiveMatrix();
                     context.Rasterizer.SetViewport(new Viewport(
                         0, 
                         0, 

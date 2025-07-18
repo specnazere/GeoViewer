@@ -1,13 +1,11 @@
-﻿using System.Drawing;
-
-namespace LayerSlicer.Forms
+﻿namespace LayerSlicer.Forms
 {
     public class CollapsiblePanel : Panel
     {
         protected string _title;
         protected Panel _content;
         protected bool _isCollapsed;
-        protected TextBox _header;
+        protected Label _header;
         protected Button _button;
 
         protected bool _selfSizeChanging = false;
@@ -28,9 +26,9 @@ namespace LayerSlicer.Forms
             _button.Click += (s, e) => Toggle();
 
             // Header button setup
-            _header = new TextBox
+            _header = new Label
             {
-                TextAlign = HorizontalAlignment.Left,
+                TextAlign = ContentAlignment.MiddleLeft,
                 Text = $" {title}",
                 Location = new Point(_button.Width + GlobalConsts.BorderWidth - 1, 0),
                 Height = GlobalConsts.ButtonHeight,
@@ -38,8 +36,7 @@ namespace LayerSlicer.Forms
                 BorderStyle = BorderStyle.FixedSingle,
                 BackColor = Color.Black,
                 ForeColor = Color.White,
-                ReadOnly = true,
-                Font = new Font("Consolas", 12),
+                Font = GlobalConsts.BasicFont,
                 Padding = Padding.Empty,
                 Margin = Padding.Empty,
                 Parent = this,
@@ -77,7 +74,7 @@ namespace LayerSlicer.Forms
         public void Add(Control element)
         {
             int height = _content.Height;
-            element.Width = Width - GlobalConsts.Padding - GlobalConsts.LayerStepWidth;
+            element.Width = Width - GlobalConsts.LayerStepWidth;
             _content.Controls.Add(element);
             element.Parent = _content;
 
@@ -140,9 +137,9 @@ namespace LayerSlicer.Forms
             {
                 control.Width = innerWidth;
 
-                if (control.GetType() == typeof(SelfStretchingTextBox))
+                if (control.GetType() == typeof(SelfStretchingLabel))
                 {
-                    control.Width -= GlobalConsts.Padding;
+                    control.Width -= GlobalConsts.Padding + GlobalConsts.LayerStepWidth;
                 }
             }
             _lastInnerWidth = innerWidth;

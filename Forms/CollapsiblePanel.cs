@@ -2,34 +2,37 @@
 {
     public class CollapsiblePanel : Panel
     {
-        protected string _title;
+        // Main class elements
         protected Panel _content;
-        protected bool _isCollapsed;
         protected Label _header;
         protected Button _button;
 
-        protected bool _selfSizeChanging = false;
+        // Flag fields
+        protected bool _isCollapsed;
+        protected bool _isSelfSizeChanging = false;
 
+        // Saving last state to not overcalculate some times
         protected int _lastInnerWidth = 0;
 
         public event EventHandler? ContainmentHeightChange;
 
         public CollapsiblePanel(string title)
         {
-            _title = title;
+            // Base setup
             Height = GlobalConsts.ButtonHeight;
             Padding = Padding.Empty;
             Margin = Padding.Empty;
 
+            // Button setup
             _button = new HeaderButton();
             _button.FlatAppearance.BorderSize = 0;
             _button.Click += (s, e) => Toggle();
 
-            // Header button setup
+            // Header setup
             _header = new Label
             {
                 TextAlign = ContentAlignment.MiddleLeft,
-                Text = $" {title}",
+                Text = $"{title}",
                 Location = new Point(_button.Width + GlobalConsts.BorderWidth - 1, 0),
                 Height = GlobalConsts.ButtonHeight,
                 Width = Width - _button.Width - GlobalConsts.BorderWidth,
@@ -37,13 +40,13 @@
                 BackColor = Color.Black,
                 ForeColor = Color.White,
                 Font = GlobalConsts.BasicFont,
-                Padding = Padding.Empty,
+                Padding = new Padding(GlobalConsts.Padding + GlobalConsts.BorderWidth, 0, 0, 0),
                 Margin = Padding.Empty,
                 Parent = this,
             };
 
             // Content panel setup
-            _content = new VerticalStackPanel
+            _content = new Panel
             {
                 Location = new Point(GlobalConsts.LayerStepWidth, _button.Height + GlobalConsts.Padding),
                 Width = Width - GlobalConsts.Padding - GlobalConsts.LayerStepWidth,
@@ -53,31 +56,35 @@
                 Parent = this,
             };
 
+            // Event handlers setup
             SizeChanged += OnSizeChanged;
 
+            // Insert elements
             Controls.Add(_header);
             Controls.Add(_button);
             Controls.Add(_content);
 
+            // Activate for first time
             Toggle();
-
-            OnSizeChanged(null, EventArgs.Empty);
         }
 
         public void Toggle()
         {
+            // Change values
             _content.Visible = _isCollapsed;
             _isCollapsed = !_isCollapsed;
+
+            // Call fuction to recalculate whole object height
             RecalibrateHeight();
         }
 
         public void Add(Control element)
         {
-            int height = _content.Height;
+            // Prepare new element
             element.Width = Width - GlobalConsts.LayerStepWidth;
             _content.Controls.Add(element);
-            element.Parent = _content;
 
+            // Special behavior for some classes
             if (element.GetType() == typeof(CollapsiblePanel))
             {
                 ((CollapsiblePanel)element).ContainmentHeightChange += (sender, e) =>
@@ -108,9 +115,9 @@
                 y += control.Height;
             }
 
-            _selfSizeChanging = true;
+            _isSelfSizeChanging = true;
             Height = y + _button.Height + GlobalConsts.Padding;
-            _selfSizeChanging = false;
+            _isSelfSizeChanging = false;
             _content.Height = y + GlobalConsts.Padding;
 
             ContainmentHeightChange?.Invoke(this, EventArgs.Empty);
@@ -118,15 +125,16 @@
 
         protected virtual void OnSizeChanged(object? sender, EventArgs e)
         {
-            if (_selfSizeChanging) 
+            if (_isSelfSizeChanging) 
                 return;
 
-            RecalibrateHeight();
             UpdateInnersWidth();
+            RecalibrateHeight();
         }
 
         protected void UpdateInnersWidth()
         {
+            // No fixed function so it can be overwrited in some cases
             int innerWidth = GetInnerWidth();
             if (_lastInnerWidth == innerWidth) return;
 
@@ -137,14 +145,13 @@
             {
                 control.Width = innerWidth;
 
+                // Special behavior for some classes
                 if (control.GetType() == typeof(SelfStretchingLabel))
                 {
                     control.Width -= GlobalConsts.Padding + GlobalConsts.LayerStepWidth;
                 }
             }
             _lastInnerWidth = innerWidth;
-
-            RecalibrateHeight();
         }
 
         protected virtual int GetInnerWidth()

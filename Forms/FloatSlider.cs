@@ -4,12 +4,17 @@ namespace LayerSlicer.Forms
 {
     public class FloatSlider : Control
     {
+        // Slider values
         private float _min = 0;
         private float _max = 100;
         private float _value = 50;
         private float _resetValue = 50;
+
+        // Render values
         private float _fillValue = 0.5f;
         private float _postResetFillValue = 0.5f;
+
+        // Flag
         private bool _dragging = false;
 
         public event EventHandler? ValueChanged;
@@ -66,22 +71,24 @@ namespace LayerSlicer.Forms
 
         public FloatSlider()
         {
+            // Base setup
             SetStyle(
                 ControlStyles.OptimizedDoubleBuffer | 
                 ControlStyles.ResizeRedraw |
                 ControlStyles.UserPaint, true);
+
+            // Placeholder value. don't matter, just must not be zero
             Height = 30;
         }
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
-
             var trackRect = new Rectangle(
                 new Point(0, (int)(Height * (1 - _fillValue))),
                 new Size(Width, (int)(Height * _fillValue) - 1));
             e.Graphics.FillRectangle(Brushes.White, trackRect);
 
+            // Drawing value on reset indicator
             int resetValuePosition = (int)(Height * (1 - _postResetFillValue));
 
             e.Graphics.DrawLine(Pens.Black,
@@ -94,6 +101,7 @@ namespace LayerSlicer.Forms
                 0, resetValuePosition + 1,
                 Width, resetValuePosition + 1);
 
+            // Minimal value drawing
             e.Graphics.DrawString(_min.ToString(), GlobalConsts.BasicFont, Brushes.Black, 
                 Width / 2, Height - GlobalConsts.BasicFont.Height, 
                 new StringFormat()
@@ -101,6 +109,7 @@ namespace LayerSlicer.Forms
                     Alignment = StringAlignment.Center,
                 });
 
+            // Maximal value drawing
             e.Graphics.DrawString(_max.ToString(), GlobalConsts.BasicFont, Brushes.White,
                 Width / 2, 0,
                 new StringFormat()

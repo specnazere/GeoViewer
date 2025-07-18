@@ -12,7 +12,8 @@ namespace LayerSlicer.Forms
         {
             // Base setup
             Text = "Interact";
-
+            
+            // Scroll bar setup
             _scrollBar = new ScrollBar()
             {
                 Visible = false,
@@ -37,6 +38,9 @@ namespace LayerSlicer.Forms
                     _button.Height);
             };
 
+            _scrollBar.SetScrollable(_content);
+
+            // Handling window sizes changing
             MainWindow.GetRenderForm().SizeChanged += (sender, e) =>
             {
                 _scrollBar.Height = Program.GetRenderSize().Height - _button.Height;
@@ -52,8 +56,6 @@ namespace LayerSlicer.Forms
 
                 _scrollBar.Invalidate();
             };
-
-            _scrollBar.SetScrollable(_content);
 
             BackColor = Color.Black;
             BorderStyle = BorderStyle.FixedSingle;
@@ -496,6 +498,7 @@ namespace LayerSlicer.Forms
         {
             if (_scrollBar.Visible) return;
 
+            // Updating state
             _scrollBar.Visible = true;
             _innerWidth = Width - _scrollBar.Width - GlobalConsts.LayerStepWidth;
 
@@ -506,6 +509,7 @@ namespace LayerSlicer.Forms
         {
             if (!_scrollBar.Visible) return;
 
+            // Updating state
             _scrollBar.Visible = false;
             _innerWidth = Width - GlobalConsts.LayerStepWidth;
 

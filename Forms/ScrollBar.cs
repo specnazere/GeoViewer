@@ -2,12 +2,13 @@
 {
     internal class ScrollBar : Control
     {
-        private int _contentSize = 10;
+        // Scroller values
+        private int _contentSize = 10; // Placeholder value, must not be zero
         private int _scrollerOffset;
-
         private int _scrollerHeight;
         private float _scale;
-
+        
+        // Event handlers flags
         private bool _dragging = false;
 
         public int Offset
@@ -19,15 +20,18 @@
 
         public ScrollBar()
         {
+            // Base setup
             SetStyle(
                 ControlStyles.OptimizedDoubleBuffer |
                 ControlStyles.UserPaint, true);
             Dock = DockStyle.None; 
 
+            // Width will be saved, height's value is a placeholder
             Size = new Size(GlobalConsts.ScrollBarWidth, 10);
 
-            _scrollerHeight = Height * Height / _contentSize;
+            _scrollerHeight = 10; // Placeholder value
 
+            // Events handling
             SizeChanged += (sender, e) => RecalculateScroll();
             VisibleChanged += (sender, e) =>
             {
@@ -47,9 +51,11 @@
         {
             base.OnPaint(e);
 
+            // Border drawing
             var frameRect = new Rectangle(new Point(0, 0), new Size(Width, Height));
             e.Graphics.DrawRectangle(GlobalConsts.GrayBorderPen, frameRect);
 
+            // Scroller drawing
             var scrollerRect = new Rectangle(
                 new Point(GlobalConsts.BorderWidth, _scrollerOffset),
                 new Size(Width - GlobalConsts.BorderWidth * 2, _scrollerHeight));

@@ -5,6 +5,7 @@ namespace LayerSlicer.Forms
 {
     internal class SliderGroup : UserControl
     {
+        // Table containment
         public readonly FloatSlider[] Sliders = new FloatSlider[3];
         public readonly TextBox[] TextBoxes = new TextBox[3];
         public readonly Button[] ResetButtons = new Button[3];
@@ -67,11 +68,11 @@ namespace LayerSlicer.Forms
 
         public SliderGroup()
         {
-            // Настройка формы
+            // Base setup
             Text = "Таблица слайдеров";
             ClientSize = new Size(450, 300);
 
-            // Создаем табличную компоновку
+            // Table layout setup
             var tableLayout = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
@@ -80,21 +81,20 @@ namespace LayerSlicer.Forms
                 CellBorderStyle = TableLayoutPanelCellBorderStyle.Single
             };
 
-            // Настройка столбцов
             for (int i = 0; i < 3; i++)
             {
                 tableLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 33.33f));
             }
 
-            // Добавляем строки
-            tableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 70)); // Для слайдеров
-            tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));    // Для полей ввода
-            tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));    // Для кнопок ресета
+            // Rows
+            tableLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 70)); // Sliders
+            tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));    // Text boxes
+            tableLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));    // Reset buttons
 
-            // Создаем и настраиваем элементы
+            // Creating per-column elements
             for (int i = 0; i < 3; i++)
             {
-                // Кнопки
+                // Setup button
                 ResetButtons[i] = new Button
                 {
                     FlatStyle = FlatStyle.Flat,
@@ -106,7 +106,7 @@ namespace LayerSlicer.Forms
                     Font = GlobalConsts.BasicFont,
                 };
 
-                // Вертикальные слайдеры
+                // Setup slider
                 Sliders[i] = new FloatSlider
                 {
                     Minimum = -100,
@@ -115,7 +115,7 @@ namespace LayerSlicer.Forms
                     Dock = DockStyle.Fill,
                 };
 
-                // Поля для ручного ввода
+                // Hand input box
                 TextBoxes[i] = new TextBox
                 {
                     Dock = DockStyle.Fill,
@@ -124,19 +124,20 @@ namespace LayerSlicer.Forms
                     Text = "0"
                 };
 
+                // Reset buttons connecting
                 var indexCopy = i;
                 ResetButtons[i].Click += (sender, e) =>
                 {
                     Sliders[indexCopy].Reset();
                 };
 
-                // Добавляем в таблицу
+                // Fill column
                 tableLayout.Controls.Add(Sliders[i], i, 0);
                 tableLayout.Controls.Add(TextBoxes[i], i, 1);
                 tableLayout.Controls.Add(ResetButtons[i], i, 2);
 
-                // Привязка событий
-                int index = i; // Важно для замыкания
+                // Events handling
+                int index = i; // Index copy
                 bool _isUpdating = false;
 
                 Sliders[index].ValueChanged += (s, e) =>

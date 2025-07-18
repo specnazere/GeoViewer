@@ -4,6 +4,7 @@ namespace LayerSlicer
 {
     internal static class GlobalCamera
     {
+        // Camera values
         private static float _fov = float.Pi / 2f; // 90 degrees
 
         private static Vector3 _position = Vector3.Zero;
@@ -34,7 +35,7 @@ namespace LayerSlicer
             get => _rotation;
             set
             {
-                _rotation = value;
+                // Wraping and clamping angles
                 _rotation.Y = MathHelper.Wrap(value.Y,
                     -GlobalConsts.AngleWrapBound, GlobalConsts.AngleWrapBound);
                 _rotation.X = Math.Clamp(value.X, 
@@ -67,9 +68,7 @@ namespace LayerSlicer
         
         public static void LocalRotate(float dPitch, float dYaw, float dRoll)
         {
-            dPitch = Math.Clamp(dPitch,
-               -GlobalConsts.PitchLimit - _rotation.X,
-                GlobalConsts.PitchLimit - _rotation.X);
+            dPitch = ClampPitch(dPitch);
 
             _rotation.Y = MathHelper.Wrap(_rotation.Y + dYaw,
                 -GlobalConsts.AngleWrapBound, GlobalConsts.AngleWrapBound);
@@ -77,6 +76,14 @@ namespace LayerSlicer
             _rotation.Z = MathHelper.Wrap(_rotation.Z + dRoll,
                 -GlobalConsts.AngleWrapBound, GlobalConsts.AngleWrapBound);
             RotationChanged?.Invoke(null, EventArgs.Empty);
+        }
+
+        private static float ClampPitch(float dPitch)
+        {
+            dPitch = Math.Clamp(dPitch,
+               -GlobalConsts.PitchLimit - _rotation.X,
+                GlobalConsts.PitchLimit - _rotation.X);
+            return dPitch;
         }
 
         public static Matrix GetMatrix()

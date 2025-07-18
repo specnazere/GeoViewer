@@ -5,6 +5,7 @@ namespace LayerSlicer
 {
     internal static class GlobalModel
     {
+        // Matrix parameters
         private static Vector3 _position = Vector3.Zero;
         private static Vector3 _rotation = Vector3.Zero;
         private static Vector3 _scale = Vector3.One;

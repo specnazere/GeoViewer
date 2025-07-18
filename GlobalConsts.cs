@@ -23,7 +23,7 @@ namespace LayerSlicer
         public const int StandartWidth = 900;
         public const int StandartHeight = 800;
 
-        public const int InteractFormWidth = 280;
+        public const int InteractFormWidth = 260;
         public const int ButtonHeight = 25;
         public const int Padding = 2;
         public const int LayerStepWidth = 5;

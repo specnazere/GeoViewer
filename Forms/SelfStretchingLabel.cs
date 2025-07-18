@@ -5,13 +5,14 @@ namespace LayerSlicer.Forms
 {
     internal class SelfStretchingLabel : Label
     {
-        // Межстрочный отступ в пикселях (можно задавать извне)
-        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public int ParagraphSpacing { get; set; } = GlobalConsts.LayerStepWidth;
+        public int ParagraphSpacing = GlobalConsts.LayerStepWidth;
 
         public SelfStretchingLabel() : base()
         {
-            AutoSize = false; // Отключаем авторазмер, чтобы управлять вручную
+            // Base setup
+            AutoSize = false;
+
+            // Handling events that can change size of inner text
             TextChanged += (s, e) => RecalibrateHeight();
             FontChanged += (s, e) => RecalibrateHeight();
             SizeChanged += (s, e) => RecalibrateHeight();
@@ -23,20 +24,20 @@ namespace LayerSlicer.Forms
 
             using (var g = CreateGraphics())
             {
-                // 1. Разделяем текст на абзацы
+                // Splitting by paragraphs
                 var paragraphs = Text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 var totalHeight = 0f;
 
-                // 2. Рассчитываем высоту для каждого абзаца
+                // Height for every paragraph
                 foreach (var paragraph in paragraphs)
                 {
                     if (string.IsNullOrEmpty(paragraph)) continue;
 
-                    // Измеряем высоту текущего абзаца (с учётом переноса слов)
+                    // Paragraph height
                     var lines = GetWrappedLines(g, paragraph, Width);
-                    totalHeight += lines.Count * Font.Height + Math.Max(0, lines.Count - 1);// * LineSpacing;
+                    totalHeight += lines.Count * Font.Height + Math.Max(0, lines.Count - 1);
 
-                    // Добавляем отступ после абзаца (кроме последнего)
+                    // Adding inter-paragraph spacing
                     if (paragraph != paragraphs.Last())
                         totalHeight += ParagraphSpacing;
                 }
@@ -47,10 +48,12 @@ namespace LayerSlicer.Forms
 
         private List<string> GetWrappedLines(Graphics g, string text, float maxWidth)
         {
+            // Splitting
             var lines = new List<string>();
             var words = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             var currentLine = new StringBuilder();
 
+            // Splitting paragraph for lines with width less than width of label
             foreach (var word in words)
             {
                 var testLine = currentLine.Length > 0 ? $"{currentLine} {word}" : word;
@@ -71,15 +74,16 @@ namespace LayerSlicer.Forms
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaintBackground(e); // Очищаем фон
-
+            // Setting text before drawing
             float yPos = 0;
             var paragraphs = Text.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
 
+            // Drawing every paragraph
             foreach (var paragraph in paragraphs)
             {
                 if (string.IsNullOrEmpty(paragraph)) continue;
 
+                // Draw separate lines
                 var lines = GetWrappedLines(e.Graphics, paragraph, Width - Padding.Horizontal);
                 foreach (var line in lines)
                 {
@@ -89,7 +93,7 @@ namespace LayerSlicer.Forms
                         new SolidBrush(ForeColor),
                         new RectangleF(Padding.Left, yPos, Width - Padding.Horizontal, Font.Height)
                     );
-                    yPos += Font.Height;// + (line != lines.Last() ? 0 : 0);
+                    yPos += Font.Height;
                 }
 
                 // Добавляем отступ после абзаца (кроме последнего)

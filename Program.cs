@@ -59,7 +59,8 @@ namespace LayerSlicer
             var layout = new InputLayout(_device, signature, new[]
                     {
                         new InputElement("POSITION", 0, Format.R32G32B32A32_Float, 0, 0),
-                        new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 16, 0)
+                        new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 16, 0),
+                        new InputElement("NORMAL", 0, Format.R32G32B32A32_Float, 32, 0)
                     });
 
             // Create Constant Buffer
@@ -68,7 +69,7 @@ namespace LayerSlicer
             // Prepare All the stages
             context.InputAssembler.InputLayout = layout;
             context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(GlobalModel.VerticesBuffer, Utilities.SizeOf<Vector4>() * 2, 0));
+            context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(GlobalModel.VerticesBuffer, Utilities.SizeOf<Vector4>() * 3, 0));
             context.VertexShader.SetConstantBuffer(0, contantBuffer);
             context.VertexShader.Set(vertexShader);
             context.PixelShader.Set(pixelShader);
@@ -158,7 +159,7 @@ namespace LayerSlicer
                 context.UpdateSubresource(ref worldViewProj, contantBuffer);
 
                 // Draw the cube
-                context.Draw(36, 0);
+                context.Draw(54, 0);
 
                 // Present!
                 _swapChain.Present(0, PresentFlags.None);

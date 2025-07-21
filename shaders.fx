@@ -21,12 +21,14 @@ struct VS_IN
 {
 	float4 pos : POSITION;
 	float4 col : COLOR;
+	float4 nor : NORMAL;
 };
 
 struct PS_IN
 {
 	float4 pos : SV_POSITION;
 	float4 col : COLOR;
+	float4 nor : NORMAL;
 };
 
 float4x4 worldViewProj;
@@ -37,6 +39,7 @@ PS_IN VS(VS_IN input)
 
 	output.pos = mul(input.pos, worldViewProj);
 	output.col = input.col;
+	output.nor = input.nor;
 
 	return output;
 }

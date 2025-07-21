@@ -31,6 +31,8 @@ namespace LayerSlicer
                 if ((GetAsyncKeyState(Keys.S) & 0x8000) != 0) { moveVector.Z -= 1; }
                 if ((GetAsyncKeyState(Keys.A) & 0x8000) != 0) { moveVector.X -= 1; }
                 if ((GetAsyncKeyState(Keys.D) & 0x8000) != 0) { moveVector.X += 1; }
+                if ((GetAsyncKeyState(Keys.Q) & 0x8000) != 0) { moveVector.Y += 1; }
+                if ((GetAsyncKeyState(Keys.E) & 0x8000) != 0) { moveVector.Y -= 1; }
 
                 if (moveVector != Vector3.Zero)
                 {

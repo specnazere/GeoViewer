@@ -95,7 +95,7 @@ namespace LayerSlicer.Forms
                         SetupLabel(FreeCameraControlText);
                         FreeCameraControlText.Text =
                             "WASD для пермещения вперёд, влево, вправо и назад " +
-                                "соответственно" +
+                                "соответственно. QE для перемещения вверх и вниз соответсвенно" +
                                 Environment.NewLine +
                             "Прокрутить колёсико для изменения поля зрения";
                         FreeCameraControlPanel.Add(FreeCameraControlText);

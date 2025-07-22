@@ -39,52 +39,69 @@ namespace LayerSlicer
         public const int ScrollingSensitivity = -15; // Negative to invert direction
 
         public static readonly Vector4[] CubeVertices = {
-                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f), // Front
-                new Vector4(-1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f),
-                new Vector4( 1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f),
-                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f),
-                new Vector4( 1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f),
-                new Vector4( 1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f),
+                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f), // Front
+                new Vector4(-1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f),
+                new Vector4( 1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f),
+                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f),
+                new Vector4( 1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f),
+                new Vector4( 1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f, -1.0f, 1.0f),
 
-                new Vector4(-1.0f, -1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f), // Back
-                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f),
-                new Vector4(-1.0f,  1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f),
-                new Vector4(-1.0f, -1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f),
-                new Vector4( 1.0f, -1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f),
-                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f),
+                new Vector4(-1.0f, -1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f), // Back
+                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f),
+                new Vector4(-1.0f,  1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f),
+                new Vector4(-1.0f, -1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f),
+                new Vector4( 1.0f, -1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f),
+                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, 0.0f,  1.0f, 1.0f),
 
-                new Vector4(-1.0f, 1.0f, -1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f), // Top
-                new Vector4(-1.0f, 1.0f,  1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f, 1.0f,  1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f, 1.0f, -1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f, 1.0f,  1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f, 1.0f, -1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f),
+                new Vector4(-1.0f, 1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f), // Top
+                new Vector4(-1.0f, 1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f),
+                new Vector4( 1.0f, 1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f),
+                new Vector4(-1.0f, 1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f),
+                new Vector4( 1.0f, 1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f),
+                new Vector4( 1.0f, 1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f,  1.0f, 0.0f, 1.0f),
 
-                new Vector4(-1.0f,-1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f), // Bottom
-                new Vector4( 1.0f,-1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f,-1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f,-1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f,-1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f,-1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f),
+                new Vector4(-1.0f,-1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f), // Bottom
+                new Vector4( 1.0f,-1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f),
+                new Vector4(-1.0f,-1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f),
+                new Vector4(-1.0f,-1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f),
+                new Vector4( 1.0f,-1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f),
+                new Vector4( 1.0f,-1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(0.0f, -1.0f, 0.0f, 1.0f),
 
-                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f), // Left
-                new Vector4(-1.0f, -1.0f,  1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f,  1.0f,  1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f,  1.0f,  1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
+                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f), // Left
+                new Vector4(-1.0f, -1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
+                new Vector4(-1.0f,  1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
+                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
+                new Vector4(-1.0f,  1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
+                new Vector4(-1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4(-1.0f, 0.0f, 0.0f, 1.0f),
 
-                new Vector4( 1.0f, -1.0f, -1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f), // Right
-                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f, -1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f, -1.0f, -1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f,  1.0f, -1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f),
+                new Vector4( 1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f), // Right
+                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f),
+                new Vector4( 1.0f, -1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f),
+                new Vector4( 1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f),
+                new Vector4( 1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f),
+                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(1.0f, 1.0f, 1.0f, 1.0f), new Vector4( 1.0f, 0.0f, 0.0f, 1.0f),
             };
 
         public static readonly Vector3 StandartCameraPostion = new(0, 0, -5);
 
         // Crutch to remove
-        public static readonly Vector2 Windows10MainFormPosition = new(8f, 31f); 
+        public static readonly Vector2 Windows10MainFormPosition = new(8f, 31f);
+
+        public const int MaxLightsPerType = 32;
+
+        public const int Float4BytesSize = 16;
+        public const int Float4x4BytesSize = Float4BytesSize * 4;
+    }
+
+    internal struct ShaderMatricesInput()
+    {
+        public Matrix WorldViewProj;
+        public Matrix ModelRotationTransformation;
+        public Matrix CameraRotationTransformation;
+        public Matrix ProjectionTransformation;
+        public uint PointLights;
+        private float Filler1 = 0;
+        private float Filler2 = 0;
+        private float Filler3 = 0;
     }
 }

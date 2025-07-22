@@ -92,5 +92,12 @@ namespace LayerSlicer
             _scale.Z = Z.GetValueOrDefault(_scale.Z);
             ScaleChanged?.Invoke(null, EventArgs.Empty);
         }
+
+        public static Matrix GetRotationMatrix()
+        {
+            return Matrix.RotationY(_rotation.Y) *
+                Matrix.RotationX(_rotation.X) *
+                Matrix.RotationZ(_rotation.Z);
+        }
     }
 }

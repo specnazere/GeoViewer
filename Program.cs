@@ -1,3 +1,4 @@
+using LayerSlicer.Lighting;
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
@@ -58,13 +59,20 @@ namespace LayerSlicer
             // Layout from VertexShader input signature
             var layout = new InputLayout(_device, signature, new[]
                     {
-                        new InputElement("POSITION", 0, Format.R32G32B32A32_Float, 0, 0),
-                        new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 16, 0),
-                        new InputElement("NORMAL", 0, Format.R32G32B32A32_Float, 32, 0)
+                        new InputElement("POSITION", 0, Format.R32G32B32A32_Float, GlobalConsts.Float4BytesSize * 0, 0),
+                        new InputElement("COLOR", 0, Format.R32G32B32A32_Float, GlobalConsts.Float4BytesSize * 1, 0),
+                        new InputElement("NORMAL", 0, Format.R32G32B32A32_Float, GlobalConsts.Float4BytesSize * 2, 0)
                     });
 
             // Create Constant Buffer
-            var contantBuffer = new Buffer(_device, Utilities.SizeOf<Matrix>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
+            var contantBuffer = new Buffer(
+                _device,
+                Utilities.SizeOf<ShaderMatricesInput>(),
+                ResourceUsage.Default,
+                BindFlags.ConstantBuffer,
+                CpuAccessFlags.None,
+                ResourceOptionFlags.None,
+                0);
 
             // Prepare All the stages
             context.InputAssembler.InputLayout = layout;
@@ -72,7 +80,21 @@ namespace LayerSlicer
             context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(GlobalModel.VerticesBuffer, Utilities.SizeOf<Vector4>() * 3, 0));
             context.VertexShader.SetConstantBuffer(0, contantBuffer);
             context.VertexShader.Set(vertexShader);
+            context.PixelShader.SetConstantBuffer(0, contantBuffer);
             context.PixelShader.Set(pixelShader);
+
+            GlobalLighting.AddPointLight(new Lighting.Structs.PointLight()
+            {
+                Position = new Vector4(5, 5, 5, 1),
+                Color = new Vector4(1, 0.5f, 0.5f, 1)
+            });
+
+
+            GlobalLighting.AddPointLight(new Lighting.Structs.PointLight()
+            {
+                Position = new Vector4(-5, -5, -5, 1),
+                Color = new Vector4(0.5f, 0.5f, 1, 1)
+            });
 
             // Use clock
             GlobalUpdater.Update();
@@ -153,10 +175,20 @@ namespace LayerSlicer
                 // Update before render
                 GlobalUpdater.Update();
 
-                // Update WorldViewProj Matrix
-                var worldViewProj = GlobalModel.Matrix * GlobalCamera.GetMatrix();
-                worldViewProj.Transpose();
-                context.UpdateSubresource(ref worldViewProj, contantBuffer);
+                // Update Matrices
+                var ShaderInput = new ShaderMatricesInput()
+                {
+                    WorldViewProj = (GlobalModel.Matrix * GlobalCamera.GetMatrix()),
+                    ModelRotationTransformation = GlobalModel.GetRotationMatrix(),
+                    CameraRotationTransformation = GlobalCamera.GetRotationMatrix(),
+                    ProjectionTransformation = GlobalCamera.GetProjMatrix(),
+                    PointLights = GlobalLighting.GetActivePointLightsCount(),
+                };
+                ShaderInput.WorldViewProj.Transpose();
+                ShaderInput.ModelRotationTransformation.Transpose();
+                ShaderInput.CameraRotationTransformation.Transpose();
+                ShaderInput.ProjectionTransformation.Transpose();
+                context.UpdateSubresource(ref ShaderInput, contantBuffer);
 
                 // Draw the cube
                 context.Draw(54, 0);

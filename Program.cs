@@ -182,6 +182,7 @@ namespace LayerSlicer
                     ModelRotationTransformation = GlobalModel.GetRotationMatrix(),
                     CameraRotationTransformation = GlobalCamera.GetRotationMatrix(),
                     ProjectionTransformation = GlobalCamera.GetProjMatrix(),
+                    CameraPosition = GlobalCamera.Position,
                     PointLights = GlobalLighting.GetActivePointLightsCount(),
                 };
                 ShaderInput.WorldViewProj.Transpose();

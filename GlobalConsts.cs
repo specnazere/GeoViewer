@@ -99,9 +99,7 @@ namespace LayerSlicer
         public Matrix ModelRotationTransformation;
         public Matrix CameraRotationTransformation;
         public Matrix ProjectionTransformation;
+        public Vector3 CameraPosition;
         public uint PointLights;
-        private float Filler1 = 0;
-        private float Filler2 = 0;
-        private float Filler3 = 0;
     }
 }

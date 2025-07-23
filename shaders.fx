@@ -10,10 +10,8 @@ struct ShaderMatricesInput
     float4x4 ModelRotationTransformation;
     float4x4 CameraRotationTransformation;
     float4x4 ProjectionTransformation;
+    float3 CameraPosition;
     uint PointLights;
-    float Filler1;
-    float Filler2;
-    float Filler3;
 };
 ShaderMatricesInput consts;
 
@@ -60,7 +58,7 @@ float CalculateAttenuation(float distance, float4 attenuation)
 
 float4 PS(PS_IN input) : SV_Target
 {
-    float3 viewDir = mul(float4(0, 0, 1, 1), consts.CameraRotationTransformation).xyz; // Направление к камере
+    float3 viewDir = normalize((float3)input.worldPos - consts.CameraPosition);
     float3 normal = normalize(input.normal);
     float4 result = float4(0.1, 0.1, 0.1, 1.0) * input.col; // Амбиентная составляющая
 

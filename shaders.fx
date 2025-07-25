@@ -66,7 +66,7 @@ float4 PS(PS_IN input) : SV_Target
     {
         PointLight light = PointLightsBuffer[i];
         float3 lightDir;
-        float attenuation = 100;
+        float attenuation = light.Color.w;
 
         if (light.Position.w == 0.0) // Направленный свет
         {

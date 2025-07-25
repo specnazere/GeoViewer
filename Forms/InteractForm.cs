@@ -1,9 +1,13 @@
-﻿using System.Numerics;
+﻿using LayerSlicer.Lighting;
+using LayerSlicer.Lighting.Structs;
+using System.Numerics;
 
 namespace LayerSlicer.Forms
 {
     internal class InteractForm : CollapsiblePanel
     {
+        private CollapsiblePanel _pointLightsContainer;
+
         private ScrollBar _scrollBar;
 
         protected int _innerWidth;
@@ -172,28 +176,28 @@ namespace LayerSlicer.Forms
                             PositionControlSliders.Reset();
 
                             bool positionChanging = false;
-                            PositionControlSliders.Sliders[0].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalModel.SetPosition(
-                                    PositionControlSliders.Sliders[0].Value, null, null);
+                                    PositionControlSliders.SliderWraps[0].Value, null, null);
                                 positionChanging = false;
                             };
-                            PositionControlSliders.Sliders[1].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalModel.SetPosition(null, 
-                                    PositionControlSliders.Sliders[1].Value, null);
+                                    PositionControlSliders.SliderWraps[1].Value, null);
                                 positionChanging = false;
                             };
-                            PositionControlSliders.Sliders[2].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalModel.SetPosition(null, null, 
-                                    PositionControlSliders.Sliders[2].Value);
+                                    PositionControlSliders.SliderWraps[2].Value);
                                 positionChanging = false;
                             };
 
@@ -201,9 +205,9 @@ namespace LayerSlicer.Forms
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
-                                PositionControlSliders.Sliders[0].Value = GlobalModel.Position.X;
-                                PositionControlSliders.Sliders[1].Value = GlobalModel.Position.Y;
-                                PositionControlSliders.Sliders[2].Value = GlobalModel.Position.Z;
+                                PositionControlSliders.SliderWraps[0].Value = GlobalModel.Position.X;
+                                PositionControlSliders.SliderWraps[1].Value = GlobalModel.Position.Y;
+                                PositionControlSliders.SliderWraps[2].Value = GlobalModel.Position.Z;
                                 positionChanging = false;
                             };
                         }
@@ -231,30 +235,30 @@ namespace LayerSlicer.Forms
                             RotationControlSliders.Reset();
 
                             bool rotationChanging = false;
-                            RotationControlSliders.Sliders[0].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalModel.SetRotation(
-                                    RotationControlSliders.Sliders[0].Value
+                                    RotationControlSliders.SliderWraps[0].Value
                                         * GlobalConsts.DegreesToRadians, null, null);
                                 rotationChanging = false;
                             };
-                            RotationControlSliders.Sliders[1].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalModel.SetRotation(null, null,
-                                    RotationControlSliders.Sliders[1].Value
+                                    RotationControlSliders.SliderWraps[1].Value
                                         * GlobalConsts.DegreesToRadians);
                                 rotationChanging = false;
                             };
-                            RotationControlSliders.Sliders[2].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalModel.SetRotation(null,
-                                    RotationControlSliders.Sliders[2].Value
+                                    RotationControlSliders.SliderWraps[2].Value
                                         * GlobalConsts.DegreesToRadians, null);
                                 rotationChanging = false;
                             };
@@ -263,9 +267,9 @@ namespace LayerSlicer.Forms
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
-                                RotationControlSliders.Sliders[0].Value = GlobalModel.Rotation.X;
-                                RotationControlSliders.Sliders[1].Value = GlobalModel.Rotation.Y;
-                                RotationControlSliders.Sliders[2].Value = GlobalModel.Rotation.Z;
+                                RotationControlSliders.SliderWraps[0].Value = GlobalModel.Rotation.X;
+                                RotationControlSliders.SliderWraps[1].Value = GlobalModel.Rotation.Y;
+                                RotationControlSliders.SliderWraps[2].Value = GlobalModel.Rotation.Z;
                                 rotationChanging = false;
                             };
                         }
@@ -293,28 +297,28 @@ namespace LayerSlicer.Forms
                             ScaleControlSliders.Reset();
 
                             bool scaleChanging = false;
-                            ScaleControlSliders.Sliders[0].ValueChanged += (sender, e) =>
+                            ScaleControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
                             {
                                 if (scaleChanging) return;
                                 scaleChanging = true;
                                 GlobalModel.SetScale(
-                                    ScaleControlSliders.Sliders[0].Value, null, null);
+                                    ScaleControlSliders.SliderWraps[0].Value, null, null);
                                 scaleChanging = false;
                             };
-                            ScaleControlSliders.Sliders[1].ValueChanged += (sender, e) =>
+                            ScaleControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
                             {
                                 if (scaleChanging) return;
                                 scaleChanging = true;
                                 GlobalModel.SetScale(null, 
-                                    ScaleControlSliders.Sliders[1].Value, null);
+                                    ScaleControlSliders.SliderWraps[1].Value, null);
                                 scaleChanging = false;
                             };
-                            ScaleControlSliders.Sliders[2].ValueChanged += (sender, e) =>
+                            ScaleControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
                             {
                                 if (scaleChanging) return;
                                 scaleChanging = true;
                                 GlobalModel.SetScale(null, null, 
-                                    ScaleControlSliders.Sliders[2].Value);
+                                    ScaleControlSliders.SliderWraps[2].Value);
                                 scaleChanging = false;
                             };
 
@@ -322,9 +326,9 @@ namespace LayerSlicer.Forms
                             {
                                 if (scaleChanging) return;
                                 scaleChanging = true;
-                                ScaleControlSliders.Sliders[0].Value = GlobalModel.Scale.X;
-                                ScaleControlSliders.Sliders[1].Value = GlobalModel.Scale.Y;
-                                ScaleControlSliders.Sliders[2].Value = GlobalModel.Scale.Z;
+                                ScaleControlSliders.SliderWraps[0].Value = GlobalModel.Scale.X;
+                                ScaleControlSliders.SliderWraps[1].Value = GlobalModel.Scale.Y;
+                                ScaleControlSliders.SliderWraps[2].Value = GlobalModel.Scale.Z;
                                 scaleChanging = false;
                             };
                         }
@@ -352,35 +356,35 @@ namespace LayerSlicer.Forms
                             Maximum = 50,
                         };
 
-                        PositionControlSliders.Sliders[2].SetReset = -5;
+                        PositionControlSliders.SliderWraps[2].SetReset = -5;
                         PositionControlSliders.Reset();
                         ModelPositionControlPanel.Add(PositionControlSliders);
                         {
                             bool positionChanging = false;
-                            PositionControlSliders.Sliders[0].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalCamera.GlobalShift(
-                                    PositionControlSliders.Sliders[0].Value -
+                                    PositionControlSliders.SliderWraps[0].Value -
                                     GlobalCamera.Position.X, 0, 0);
                                 positionChanging = false;
                             };
-                            PositionControlSliders.Sliders[1].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalCamera.GlobalShift(0,
-                                    PositionControlSliders.Sliders[1].Value -
+                                    PositionControlSliders.SliderWraps[1].Value -
                                     GlobalCamera.Position.Y, 0);
                                 positionChanging = false;
                             };
-                            PositionControlSliders.Sliders[2].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalCamera.GlobalShift(0, 0,
-                                    PositionControlSliders.Sliders[2].Value -
+                                    PositionControlSliders.SliderWraps[2].Value -
                                     GlobalCamera.Position.Z);
                                 positionChanging = false;
                             };
@@ -389,9 +393,9 @@ namespace LayerSlicer.Forms
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
-                                PositionControlSliders.Sliders[0].Value = GlobalCamera.Position.X;
-                                PositionControlSliders.Sliders[1].Value = GlobalCamera.Position.Y;
-                                PositionControlSliders.Sliders[2].Value = GlobalCamera.Position.Z;
+                                PositionControlSliders.SliderWraps[0].Value = GlobalCamera.Position.X;
+                                PositionControlSliders.SliderWraps[1].Value = GlobalCamera.Position.Y;
+                                PositionControlSliders.SliderWraps[2].Value = GlobalCamera.Position.Z;
                                 positionChanging = false;
                             };
                         }
@@ -415,39 +419,41 @@ namespace LayerSlicer.Forms
                             Minimum = -180,
                             Maximum = 180,
                         };
-                        RotationControlSliders.Sliders[0].Maximum =  GlobalConsts.PitchLimit / GlobalConsts.DegreesToRadians;
-                        RotationControlSliders.Sliders[0].Minimum = -GlobalConsts.PitchLimit / GlobalConsts.DegreesToRadians;
+                        RotationControlSliders.SliderWraps[0].Maximum =
+                            GlobalConsts.PitchLimit / GlobalConsts.DegreesToRadians;
+                        RotationControlSliders.SliderWraps[0].Minimum = 
+                           -GlobalConsts.PitchLimit / GlobalConsts.DegreesToRadians;
                         ModelRotationControlPanel.Add(RotationControlSliders);
                         RotationControlSliders.Reset();
                         {
 
                             bool rotationChanging = false;
-                            RotationControlSliders.Sliders[0].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalCamera.LocalRotate(
-                                    RotationControlSliders.Sliders[0].Value * 
+                                    RotationControlSliders.SliderWraps[0].Value * 
                                     GlobalConsts.DegreesToRadians -
                                     GlobalCamera.Rotation.X, 0 , 0);
                                 rotationChanging = false;
                             };
-                            RotationControlSliders.Sliders[1].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalCamera.LocalRotate(0,
-                                    RotationControlSliders.Sliders[1].Value * 
+                                    RotationControlSliders.SliderWraps[1].Value * 
                                     GlobalConsts.DegreesToRadians -
                                     GlobalCamera.Rotation.Y, 0);
                                 rotationChanging = false;
                             };
-                            RotationControlSliders.Sliders[2].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalCamera.LocalRotate(0, 0,
-                                    RotationControlSliders.Sliders[2].Value * 
+                                    RotationControlSliders.SliderWraps[2].Value * 
                                     GlobalConsts.DegreesToRadians -
                                     GlobalCamera.Rotation.Z);
                                 rotationChanging = false;
@@ -457,18 +463,364 @@ namespace LayerSlicer.Forms
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
-                                RotationControlSliders.Sliders[0].Value = GlobalCamera.Rotation.X / GlobalConsts.DegreesToRadians;
-                                RotationControlSliders.Sliders[1].Value = GlobalCamera.Rotation.Y / GlobalConsts.DegreesToRadians;
-                                RotationControlSliders.Sliders[2].Value = GlobalCamera.Rotation.Z / GlobalConsts.DegreesToRadians;
+                                RotationControlSliders.SliderWraps[0].Value = 
+                                    GlobalCamera.Rotation.X / GlobalConsts.DegreesToRadians;
+                                RotationControlSliders.SliderWraps[1].Value = 
+                                    GlobalCamera.Rotation.Y / GlobalConsts.DegreesToRadians;
+                                RotationControlSliders.SliderWraps[2].Value = 
+                                    GlobalCamera.Rotation.Z / GlobalConsts.DegreesToRadians;
                                 rotationChanging = false;
+                            };
+                        }
+                    }
+
+                    var FovControlPanel = new CollapsiblePanel("Поле зрения");
+                    CameraControlPanel.Add(FovControlPanel);
+                    {
+                        var FovControlLabel = new SelfStretchingLabel();
+                        FovControlPanel.Add(FovControlLabel);
+                        {
+                            SetupLabel(FovControlLabel);
+                            FovControlLabel.Text =
+                                "Слайдер для регулирования поля зрения камеры в градусах";
+                        }
+
+                        var FovControlSlider = new SliderWrap()
+                        {
+                            IsVerticalLayout = false,
+                            SetReset = (float)Math.Round(GlobalConsts.FovBaseValue / GlobalConsts.DegreesToRadians),
+                            Minimum = (float)Math.Round(GlobalConsts.FovDownLimit / GlobalConsts.DegreesToRadians),
+                            Maximum = (float)Math.Round(GlobalConsts.FovUpperLimit / GlobalConsts.DegreesToRadians),
+                        };
+                        bool fovChanging = false;
+                        FovControlPanel.Add(FovControlSlider);
+                        {
+                            FovControlSlider.ValueChanged += (sender, e) =>
+                            {
+                                if (fovChanging) return;
+                                fovChanging = true;
+                                GlobalCamera.Fov = FovControlSlider.Value * GlobalConsts.DegreesToRadians;
+                                fovChanging = false;
+                            };
+
+                            GlobalCamera.FovChanged += (sender, e) =>
+                            {
+                                if (fovChanging) return;
+                                fovChanging = true;
+                                FovControlSlider.Value = GlobalCamera.Fov / GlobalConsts.DegreesToRadians;
+                                fovChanging = false;
                             };
                         }
                     }
                 }
             }
-            OnSizeChanged(null, EventArgs.Empty);
 
+            var LightingControlPanel = new CollapsiblePanel("Контроль освещения");
+            _pointLightsContainer = LightingControlPanel;
+            Add(LightingControlPanel);
+            {
+                var PointLightsCreationPanel = new CollapsiblePanel("Новый точечный источник");
+                LightingControlPanel.Add(PointLightsCreationPanel);
+                {
+                    var AddableLight = new PointLightObject
+                    {
+                        Position = new SharpDX.Vector4(0, 0, 0, 1),
+                        Color = new SharpDX.Vector4(1, 1, 1, 100) // Белый цвет по умолчанию
+                    };
+                    GlobalLighting.AddPointLight(AddableLight, "Demonstrative");
+
+                    SharpDX.Vector4 savedColor = AddableLight.Color;
+                    PointLightsCreationPanel.Toggled += (sender, e) =>
+                    {
+                        if (PointLightsCreationPanel.IsCollapsed())
+                        {
+                            savedColor = AddableLight.Color;
+                            AddableLight.Color = SharpDX.Vector4.Zero;
+                        }
+                        else
+                        {
+                            AddableLight.Color = savedColor;
+                        }
+                    };
+
+                    var PositionControlLabel = new SelfStretchingLabel();
+                    PointLightsCreationPanel.Add(PositionControlLabel);
+                    {
+                        SetupLabel(PositionControlLabel);
+                        PositionControlLabel.Text =
+                            "Слайдеры для размещения вдоль осей X, Y и Z соотвественно";
+                    }
+
+                    var PositionControlSliders = new SliderGroup()
+                    {
+                        SetReset = 0,
+                        Minimum = -50,
+                        Maximum = 50,
+                        Height = 200,
+                    };
+                    PointLightsCreationPanel.Add(PositionControlSliders);
+                    {
+                        PositionControlSliders.Reset();
+
+                        SharpDX.Vector4 bufferPosition = SharpDX.Vector4.Zero;
+                        PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                        {
+                            bufferPosition = AddableLight.Position;
+                            bufferPosition.X = PositionControlSliders.SliderWraps[0].Value;
+                            AddableLight.Position = bufferPosition;
+                        };
+                        PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                        {
+                            bufferPosition = AddableLight.Position;
+                            bufferPosition.Y = PositionControlSliders.SliderWraps[1].Value;
+                            AddableLight.Position = bufferPosition;
+                        };
+                        PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                        {
+                            bufferPosition = AddableLight.Position;
+                            bufferPosition.Z = PositionControlSliders.SliderWraps[2].Value;
+                            AddableLight.Position = bufferPosition;
+                        };
+                    }
+
+                    var ColorControlLabel = new SelfStretchingLabel();
+                    PointLightsCreationPanel.Add(ColorControlLabel);
+                    {
+                        SetupLabel(ColorControlLabel);
+                        ColorControlLabel.Text =
+                            "Слайдеры для изменения цвета света по компонентам RGB";
+                    }
+
+                    var ColorControlSliders = new SliderGroup()
+                    {
+                        SetReset = 256,
+                        Minimum = 0,
+                        Maximum = 256,
+                        Height = 200,
+                    };
+                    PointLightsCreationPanel.Add(ColorControlSliders);
+                    ColorControlSliders.Reset();
+                    {
+                        SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+                        ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                        {
+                            bufferColor = AddableLight.Color;
+                            bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                            AddableLight.Color = bufferColor;
+                        };
+                        ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                        {
+                            bufferColor = AddableLight.Color;
+                            bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                            AddableLight.Color = bufferColor;
+                        };
+                        ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                        {
+                            bufferColor = AddableLight.Color;
+                            bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                            AddableLight.Color = bufferColor;
+                        };
+                    }
+
+                    var IntencyControlLabel = new SelfStretchingLabel();
+                    PointLightsCreationPanel.Add(IntencyControlLabel);
+                    {
+                        SetupLabel(IntencyControlLabel);
+                        IntencyControlLabel.Text =
+                            "Слайдер для изменения интенсивности освещения";
+                    }
+
+                    var IntencyControlSlider = new SliderWrap()
+                    {
+                        SetReset = 10,
+                        Minimum = 0,
+                        Maximum = 1000,
+                        IsVerticalLayout = false,
+                    };
+                    PointLightsCreationPanel.Add(IntencyControlSlider);
+                    IntencyControlSlider.Reset();
+                    {
+                        SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+                        IntencyControlSlider.ValueChanged += (sender, e) =>
+                        {
+                            bufferColor = AddableLight.Color;
+                            bufferColor.W = IntencyControlSlider.Value;
+                            AddableLight.Color = bufferColor;
+                        };
+                    }
+
+                    var LightName = new TextBox()
+                    {
+                        TextAlign = HorizontalAlignment.Left,
+                        Font = GlobalConsts.BasicFont,
+                        Text = "New point light name",
+                        Dock = DockStyle.None,
+                    };
+                    PointLightsCreationPanel.Add(LightName);
+
+                    var NewLightButton = new Button()
+                    {
+                        FlatStyle = FlatStyle.Flat,
+                        TextAlign = ContentAlignment.MiddleCenter,
+                        BackColor = Color.White,
+                        ForeColor = Color.Black,
+                        Text = "NewLight",
+                        Font = GlobalConsts.BasicFont,
+                        Dock = DockStyle.None,
+                        Height = 26,
+                    };
+                    PointLightsCreationPanel.Add(NewLightButton);
+                    NewLightButton.Click += (sedner, e) =>
+                    {
+                        var coppiedPointLight = new PointLightObject
+                        {
+                            Color = AddableLight.Color,
+                            Position = AddableLight.Position,
+                        };
+                        GlobalLighting.AddPointLight(coppiedPointLight, LightName.Text);
+                        ConnectPointLight(coppiedPointLight, LightName.Text); 
+                    };
+                }
+            }
+
+            OnSizeChanged(null, EventArgs.Empty);
             preActivated.RecalibrateHeight();
+        }
+
+        public void ConnectPointLight(PointLightObject newPointLight, string name)
+        {
+            var pointLightAccessPanel = new CollapsiblePanel(name);
+            _pointLightsContainer.Add(pointLightAccessPanel);
+
+            var PositionControlLabel = new SelfStretchingLabel();
+            pointLightAccessPanel.Add(PositionControlLabel);
+            {
+                SetupLabel(PositionControlLabel);
+                PositionControlLabel.Text =
+                    "Слайдеры для перемещения вдоль осей X, Y и Z соотвественно";
+            }
+
+            var PositionControlSliders = new SliderGroup()
+            {
+                SetReset = 0,
+                Minimum = -50,
+                Maximum = 50,
+                Height = 200,
+            };
+            PositionControlSliders.SliderWraps[0].SetReset = newPointLight.Position.X;
+            PositionControlSliders.SliderWraps[1].SetReset = newPointLight.Position.Y;
+            PositionControlSliders.SliderWraps[2].SetReset = newPointLight.Position.Z;
+            pointLightAccessPanel.Add(PositionControlSliders);
+            {
+                PositionControlSliders.Reset();
+
+                SharpDX.Vector4 bufferPosition = SharpDX.Vector4.Zero;
+                PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                {
+                    bufferPosition = newPointLight.Position;
+                    bufferPosition.X = PositionControlSliders.SliderWraps[0].Value;
+                    newPointLight.Position = bufferPosition;
+                };
+                PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                {
+                    bufferPosition = newPointLight.Position;
+                    bufferPosition.Y = PositionControlSliders.SliderWraps[1].Value;
+                    newPointLight.Position = bufferPosition;
+                };
+                PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                {
+                    bufferPosition = newPointLight.Position;
+                    bufferPosition.Z = PositionControlSliders.SliderWraps[2].Value;
+                    newPointLight.Position = bufferPosition;
+                };
+            }
+
+            var ColorControlLabel = new SelfStretchingLabel();
+            pointLightAccessPanel.Add(ColorControlLabel);
+            {
+                SetupLabel(ColorControlLabel);
+                ColorControlLabel.Text =
+                    "Слайдеры для изменения цвета света по компонентам RGB";
+            }
+
+            var ColorControlSliders = new SliderGroup()
+            {
+                SetReset = 256,
+                Minimum = 0,
+                Maximum = 256,
+                Height = 200,
+            };
+            ColorControlSliders.SliderWraps[0].SetReset = newPointLight.Color.X * 256;
+            ColorControlSliders.SliderWraps[1].SetReset = newPointLight.Color.Y * 256;
+            ColorControlSliders.SliderWraps[2].SetReset = newPointLight.Color.Z * 256;
+            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+            pointLightAccessPanel.Add(ColorControlSliders);
+            ColorControlSliders.Reset();
+            {
+                ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newPointLight.Color;
+                    bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                    newPointLight.Color = bufferColor;
+                };
+                ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newPointLight.Color;
+                    bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                    newPointLight.Color = bufferColor;
+                };
+                ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newPointLight.Color;
+                    bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                    newPointLight.Color = bufferColor;
+                };
+            }
+
+            var IntencyControlLabel = new SelfStretchingLabel();
+            pointLightAccessPanel.Add(IntencyControlLabel);
+            {
+                SetupLabel(IntencyControlLabel);
+                IntencyControlLabel.Text =
+                    "Слайдер для изменения интенсивности освещения";
+            }
+
+            var IntencyControlSlider = new SliderWrap()
+            {
+                SetReset = newPointLight.Color.W,
+                Minimum = 0,
+                Maximum = 1000,
+                IsVerticalLayout = false,
+            };
+            pointLightAccessPanel.Add(IntencyControlSlider);
+            IntencyControlSlider.Reset();
+            {
+                IntencyControlSlider.ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newPointLight.Color;
+                    bufferColor.W = IntencyControlSlider.Value;
+                    newPointLight.Color = bufferColor;
+                };
+            }
+
+            var lightDeleteButton = new Button()
+            {
+                FlatStyle = FlatStyle.Flat,
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.White,
+                ForeColor = Color.Black,
+                Text = "DELETE",
+                Font = GlobalConsts.BasicFont,
+                Dock = DockStyle.None,
+                Height = 26,
+            };
+            pointLightAccessPanel.Add(lightDeleteButton);
+
+            lightDeleteButton.Click += (sender, e) =>
+            {
+                _pointLightsContainer.Remove(pointLightAccessPanel);
+                GlobalLighting.RemovePointLight(name);
+            };
         }
 
         private void SetupLabel(Label label)

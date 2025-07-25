@@ -14,8 +14,10 @@ namespace LayerSlicer.Forms
         private float _fillValue = 0.5f;
         private float _postResetFillValue = 0.5f;
 
-        // Flag
+        // Flags
         private bool _dragging = false;
+
+        public bool Horisontal = false;
 
         public event EventHandler? ValueChanged;
 
@@ -83,39 +85,78 @@ namespace LayerSlicer.Forms
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            var trackRect = new Rectangle(
-                new Point(0, (int)(Height * (1 - _fillValue))),
-                new Size(Width, (int)(Height * _fillValue) - 1));
-            e.Graphics.FillRectangle(Brushes.White, trackRect);
+            if (Horisontal)
+            {
+                var trackRect = new Rectangle(
+                    new Point(0, 0),
+                    new Size((int)(Width * _fillValue), Height));
+                e.Graphics.FillRectangle(Brushes.White, trackRect);
 
-            // Drawing value on reset indicator
-            int resetValuePosition = (int)(Height * (1 - _postResetFillValue));
+                // Drawing value on reset indicator
+                int resetValuePosition = (int)(Width * _postResetFillValue);
 
-            e.Graphics.DrawLine(Pens.Black,
-                0, resetValuePosition - 1,
-                Width, resetValuePosition - 1);
-            e.Graphics.DrawLine(Pens.Red,
-                0, resetValuePosition,
-                Width, resetValuePosition);
-            e.Graphics.DrawLine(Pens.Black,
-                0, resetValuePosition + 1,
-                Width, resetValuePosition + 1);
+                e.Graphics.DrawLine(Pens.Black,
+                    resetValuePosition - 1, 0,
+                    resetValuePosition - 1, Height);
+                e.Graphics.DrawLine(Pens.Red,
+                    resetValuePosition, 0,
+                    resetValuePosition, Height);
+                e.Graphics.DrawLine(Pens.Black,
+                    resetValuePosition + 1, 0,
+                    resetValuePosition + 1, Height);
 
-            // Minimal value drawing
-            e.Graphics.DrawString(_min.ToString(), GlobalConsts.BasicFont, Brushes.Black, 
-                Width / 2, Height - GlobalConsts.BasicFont.Height, 
-                new StringFormat()
-                {
-                    Alignment = StringAlignment.Center,
-                });
+                // Minimal value drawing
+                e.Graphics.DrawString(_min.ToString(), GlobalConsts.BasicFont, Brushes.Black,
+                    0, 0,
+                    new StringFormat()
+                    {
+                        Alignment = StringAlignment.Near,
+                    });
 
-            // Maximal value drawing
-            e.Graphics.DrawString(_max.ToString(), GlobalConsts.BasicFont, Brushes.White,
-                Width / 2, 0,
-                new StringFormat()
-                {
-                    Alignment = StringAlignment.Center,
-                });
+                // Maximal value drawing
+                e.Graphics.DrawString(_max.ToString(), GlobalConsts.BasicFont, Brushes.White,
+                    Width, 0,
+                    new StringFormat()
+                    {
+                        Alignment = StringAlignment.Far,
+                    });
+            }
+            else
+            {
+                var trackRect = new Rectangle(
+                    new Point(0, (int)(Height * (1 - _fillValue))),
+                    new Size(Width, (int)(Height * _fillValue) - 1));
+                e.Graphics.FillRectangle(Brushes.White, trackRect);
+
+                // Drawing value on reset indicator
+                int resetValuePosition = (int)(Height * (1 - _postResetFillValue));
+
+                e.Graphics.DrawLine(Pens.Black,
+                    0, resetValuePosition - 1,
+                    Width, resetValuePosition - 1);
+                e.Graphics.DrawLine(Pens.Red,
+                    0, resetValuePosition,
+                    Width, resetValuePosition);
+                e.Graphics.DrawLine(Pens.Black,
+                    0, resetValuePosition + 1,
+                    Width, resetValuePosition + 1);
+
+                // Minimal value drawing
+                e.Graphics.DrawString(_min.ToString(), GlobalConsts.BasicFont, Brushes.Black,
+                    Width / 2, Height - GlobalConsts.BasicFont.Height,
+                    new StringFormat()
+                    {
+                        Alignment = StringAlignment.Center,
+                    });
+
+                // Maximal value drawing
+                e.Graphics.DrawString(_max.ToString(), GlobalConsts.BasicFont, Brushes.White,
+                    Width / 2, 0,
+                    new StringFormat()
+                    {
+                        Alignment = StringAlignment.Center,
+                    });
+            }
         }
 
         protected override void OnMouseDown(MouseEventArgs e)
@@ -124,14 +165,17 @@ namespace LayerSlicer.Forms
             if (e.Button == MouseButtons.Left)
             {
                 _dragging = true;
-                UpdateValue(e.Y);
+                UpdateValue(e);
             }
         }
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
-            if (_dragging) UpdateValue(e.Y);
+            if (_dragging)
+            {
+                UpdateValue(e);
+            }
         }
 
         protected override void OnMouseUp(MouseEventArgs e)
@@ -140,10 +184,18 @@ namespace LayerSlicer.Forms
             _dragging = false;
         }
 
-        private void UpdateValue(float mouseY)
+        private void UpdateValue(MouseEventArgs e)
         {
-            float newValue = _min + (1 - mouseY / Height) * (_max - _min);
-            Value = Math.Max(_min, Math.Min(_max, newValue));
+            if (Horisontal)
+            {
+                float newValue = e.X / (float)Width * (_max - _min) + _min;
+                Value = Math.Max(_min, Math.Min(_max, newValue));
+            }
+            else
+            {
+                float newValue = (1 - e.Y / (float)Height) * (_max - _min) + _min;
+                Value = Math.Max(_min, Math.Min(_max, newValue));
+            }
         }
 
         public void Reset()

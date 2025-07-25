@@ -11,6 +11,7 @@ namespace LayerSlicer
 
         public const float FovUpperLimit = float.Pi / 1.5f; // 135 degrees
         public const float FovDownLimit = float.Pi / 18f; // 10 degrees
+        public const float FovBaseValue = float.Pi / 2; // 90 degrees
         public const double FovSensitivity = 0.9; // Value in range (0, 1)
 
         public const float StandartMouseWheelStep = 120;

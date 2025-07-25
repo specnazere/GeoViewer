@@ -83,18 +83,23 @@ namespace LayerSlicer
             context.PixelShader.SetConstantBuffer(0, contantBuffer);
             context.PixelShader.Set(pixelShader);
 
-            GlobalLighting.AddPointLight(new Lighting.Structs.PointLight()
+            MainWindow.InitInteractForm();
+
+            var startingPointLight1 = new Lighting.Structs.PointLightObject()
             {
                 Position = new Vector4(5, 5, 5, 1),
-                Color = new Vector4(1, 0.5f, 0.5f, 1)
-            });
+                Color = new Vector4(1, 0.5f, 0.5f, 100)
+            };
+            GlobalLighting.AddPointLight(startingPointLight1, "starting1");
+            MainWindow.GetInteractForm().ConnectPointLight(startingPointLight1, "starting1");
 
-
-            GlobalLighting.AddPointLight(new Lighting.Structs.PointLight()
+            var startingPointLight2 = new Lighting.Structs.PointLightObject()
             {
                 Position = new Vector4(-5, -5, -5, 1),
-                Color = new Vector4(0.5f, 0.5f, 1, 1)
-            });
+                Color = new Vector4(0.5f, 0.5f, 1, 100)
+            };
+            GlobalLighting.AddPointLight(startingPointLight2, "starting2");
+            MainWindow.GetInteractForm().ConnectPointLight(startingPointLight2, "starting2");
 
             // Use clock
             GlobalUpdater.Update();

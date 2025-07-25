@@ -1,13 +1,15 @@
-﻿using LayerSlicer.Lighting.Structs;
+﻿using LayerSlicer.Forms;
+using LayerSlicer.Lighting.Structs;
 using SharpDX.Direct3D11;
 using System;
-using System.Linq;
 
 namespace LayerSlicer.Lighting
 {
     internal static class GlobalLighting
     {
-        private static PointLight[] _pointLights = new PointLight[GlobalConsts.MaxLightsPerType];
+        private static PointLightStruct[] _pointLightStructs = new PointLightStruct[GlobalConsts.MaxLightsPerType];
+        private static PointLightObject[] _pointLightObjects = new PointLightObject[GlobalConsts.MaxLightsPerType];
+        private static List<(uint, string)> _handlersConnection = new();
         private static SharpDX.Direct3D11.Buffer _pointLightsBuffer;
         private static uint _activePointLightsCount = 0;
         private static bool _isDirty = true;
@@ -24,49 +26,70 @@ namespace LayerSlicer.Lighting
                 Program.GetDevice(),
                 new BufferDescription
                 {
-                    SizeInBytes = SharpDX.Utilities.SizeOf<PointLight>() * GlobalConsts.MaxLightsPerType,
+                    SizeInBytes = SharpDX.Utilities.SizeOf<PointLightStruct>() * GlobalConsts.MaxLightsPerType,
                     Usage = ResourceUsage.Dynamic,
                     BindFlags = BindFlags.ShaderResource,
                     CpuAccessFlags = CpuAccessFlags.Write,
                     OptionFlags = ResourceOptionFlags.BufferStructured,
-                    StructureByteStride = SharpDX.Utilities.SizeOf<PointLight>()
+                    StructureByteStride = SharpDX.Utilities.SizeOf<PointLightStruct>()
                 });
             _deviceContext = Program.GetDevice().ImmediateContext;
+
+            for (int i = 0; i < GlobalConsts.MaxLightsPerType; i++)
+            {
+                _pointLightObjects[i] = new PointLightObject();
+            }
         }
 
-        public static bool AddPointLight(PointLight light)
+        public static bool AddPointLight(PointLightObject light, string name)
         {
             if (_activePointLightsCount >= GlobalConsts.MaxLightsPerType)
                 return false;
 
-            _pointLights[_activePointLightsCount] = light;
+            _pointLightObjects[_activePointLightsCount] = light;
+            _handlersConnection.Add((_activePointLightsCount, name));
             _activePointLightsCount++;
+
+            light.DataChanged += (sender, e) => OnLightingChanged();
+
             MarkDirty();
             return true;
         }
 
-        public static bool UpdatePointLight(int index, PointLight light)
+        public static bool RemovePointLight(string nameToDelete)
         {
-            if (index < 0 || index >= _activePointLightsCount)
+            int index = 0;
+            bool find = false;
+            for (int i = 0; i < _activePointLightsCount; i++)
+            {
+                (var pointLightIndex, var name) = _handlersConnection[i];
+                if (name == nameToDelete)
+                {
+                    index = i;
+                    find = true;
+                    break;
+                }
+            }
+
+            if (!find) 
                 return false;
 
-            _pointLights[index] = light;
-            MarkDirty();
-            return true;
-        }
-
-        public static bool RemovePointLight(int index)
-        {
             if (index < 0 || index >= _activePointLightsCount)
                 return false;
 
             // Сдвигаем все элементы после удаляемого
             for (int i = index; i < _activePointLightsCount - 1; i++)
             {
-                _pointLights[i] = _pointLights[i + 1];
+                _pointLightObjects[i] = _pointLightObjects[i + 1];
+
+                (var pointLightIndex, var name) = _handlersConnection[i];
+                if (pointLightIndex > index)
+                {
+                    _handlersConnection[i] = _handlersConnection[i + 1];
+                }
             }
 
-            _activePointLightsCount--;
+            _pointLightObjects[_activePointLightsCount--] = new PointLightObject();
             MarkDirty();
             return true;
         }
@@ -97,7 +120,12 @@ namespace LayerSlicer.Lighting
                 MapFlags.None,
                 out var stream);
 
-            SharpDX.Utilities.Write(dataBox.DataPointer, _pointLights, 0, (int)_activePointLightsCount);
+            for (int i = 0; i < _activePointLightsCount; i++)
+            {
+                _pointLightStructs[i] = _pointLightObjects[i].AsStruct();
+            }
+
+            SharpDX.Utilities.Write(dataBox.DataPointer, _pointLightStructs, 0, (int)_activePointLightsCount);
             _deviceContext.UnmapSubresource(_pointLightsBuffer, 0);
 
             var srvDescription = new ShaderResourceViewDescription

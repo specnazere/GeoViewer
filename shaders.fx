@@ -8,6 +8,7 @@ struct ShaderMatricesInput
 {
     float4x4 WorldViewProj;
     float4x4 ModelRotationTransformation;
+    float4x4 ModelFullTransformation;
     float4x4 CameraRotationTransformation;
     float4x4 ProjectionTransformation;
     float3 CameraPosition;
@@ -33,7 +34,6 @@ struct PS_IN
     float3 normal : TEXCOORD1; // Нормаль в мировом пространстве
 };
 
-
 // Параметры материала
 float4 ambientColor = float4(0.1, 0.1, 0.1, 1.0); // Амбиентный цвет
 float specularPower = 32.0; // Степень блеска (shininess)
@@ -44,7 +44,7 @@ PS_IN VS(VS_IN input)
 
     output.pos = mul(input.pos, consts.WorldViewProj);
     output.col = input.col;
-    output.worldPos = mul(input.pos, consts.ModelRotationTransformation); // Переводим в мировые координаты
+    output.worldPos = mul(input.pos, consts.ModelFullTransformation); // Переводим в мировые координаты
     output.normal = normalize(mul(input.nor, (float3x3) consts.ModelRotationTransformation)); // Нормаль в мировом пространстве
 
     return output;

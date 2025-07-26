@@ -98,6 +98,7 @@ namespace LayerSlicer
     {
         public Matrix WorldViewProj;
         public Matrix ModelRotationTransformation;
+        public Matrix ModelFullTransformation;
         public Matrix CameraRotationTransformation;
         public Matrix ProjectionTransformation;
         public Vector3 CameraPosition;

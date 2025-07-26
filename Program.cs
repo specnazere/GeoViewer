@@ -185,6 +185,7 @@ namespace LayerSlicer
                 {
                     WorldViewProj = (GlobalModel.Matrix * GlobalCamera.GetMatrix()),
                     ModelRotationTransformation = GlobalModel.GetRotationMatrix(),
+                    ModelFullTransformation = GlobalModel.Matrix,
                     CameraRotationTransformation = GlobalCamera.GetRotationMatrix(),
                     ProjectionTransformation = GlobalCamera.GetProjMatrix(),
                     CameraPosition = GlobalCamera.Position,

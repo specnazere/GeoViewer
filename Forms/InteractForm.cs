@@ -1,11 +1,14 @@
 ﻿using LayerSlicer.Lighting;
 using LayerSlicer.Lighting.Structs;
-using System.Numerics;
 
 namespace LayerSlicer.Forms
 {
     internal class InteractForm : CollapsiblePanel
     {
+        private PointF[] _stretchTriangle = new PointF[3];
+        private bool _stretching = false;
+        private Point _mouseLoc;
+
         private CollapsiblePanel _pointLightsContainer;
 
         private ScrollBar _scrollBar;
@@ -16,7 +19,13 @@ namespace LayerSlicer.Forms
         {
             // Base setup
             Text = "Interact";
-            
+            CalculateSretchTriangle();
+
+            _header.Paint += (sender, e) => OnPaint(e);
+            _header.MouseDown += OnMouseDown;
+            _header.MouseUp += OnMouseUp;
+            _header.MouseMove += OnMouseMove;
+
             // Scroll bar setup
             _scrollBar = new ScrollBar()
             {
@@ -87,6 +96,17 @@ namespace LayerSlicer.Forms
                             "(положение, поворот и поле зрения камеры, положение, " +
                             "поворот и масштаб модели)";
                     HotkeysInfoPanel.Add(ControlInfoLabel);
+                }
+
+                var StretchInfoPanel = new CollapsiblePanel("Растягивание панели");
+                ControlInfoPanel.Add(StretchInfoPanel);
+                {
+                    var ControlInfoLabel = new SelfStretchingLabel();
+                    SetupLabel(ControlInfoLabel);
+                    ControlInfoLabel.Text =
+                        "Ширина интерактивной панели может быть изменена " +
+                            "путём перемещения белого уголка справа сверху";
+                    StretchInfoPanel.Add(ControlInfoLabel);
                 }
 
                 var CameraControlModesInfoPanel = new CollapsiblePanel("Справка по камере");
@@ -823,6 +843,13 @@ namespace LayerSlicer.Forms
             };
         }
 
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            e.Graphics.FillPolygon(Brushes.White, _stretchTriangle);
+        }
+
         private void SetupLabel(Label label)
         {
             label.Font = GlobalConsts.BasicFont;
@@ -873,9 +900,66 @@ namespace LayerSlicer.Forms
             UpdateInnersWidth();
         }
 
+        protected void UpdateInnerWidth()
+        {
+            if (_scrollBar.Visible)
+            {
+                _innerWidth = Width - _scrollBar.Width - GlobalConsts.LayerStepWidth;
+            }
+            else
+            {
+                _innerWidth = Width - GlobalConsts.LayerStepWidth;
+            }
+        }
+
         protected override int GetInnerWidth()
         {
             return _innerWidth;
+        }
+
+        private void OnMouseDown(object? sender, MouseEventArgs e)
+        {
+            if ((e.Location.X + _header.Location.X) - (e.Location.Y + _header.Location.Y) 
+                >= Width - _header.Height / 2 && e.Button == MouseButtons.Left)
+            {
+                _mouseLoc = e.Location;
+                _stretching = true;
+            }
+        }
+
+        private void OnMouseUp(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                _stretching = false;
+                UpdateInnerWidth();
+                OnSizeChanged(null, EventArgs.Empty);
+            }
+        }
+
+        private void OnMouseMove(object? sender, MouseEventArgs e)
+        {
+            if (_stretching)
+            {
+                Width = Math.Clamp(Width - (_mouseLoc.X - e.Location.X), GlobalConsts.InteractFormWidth / 2, MainWindow.GetRenderForm().Width);
+            }
+            _mouseLoc = e.Location;
+        }
+
+        private void CalculateSretchTriangle()
+        {
+            _stretchTriangle[0] = new PointF(_header.Width - GlobalConsts.BorderWidth, 0);
+            _stretchTriangle[1] = new PointF(_header.Width - GlobalConsts.BorderWidth, _header.Height / 2);
+            _stretchTriangle[2] = new PointF(_header.Width - GlobalConsts.BorderWidth - _header.Height / 2, 0);
+        }
+
+        protected override void OnSizeChanged(object? sender, EventArgs e)
+        {
+            if (!_stretching)
+            {
+                base.OnSizeChanged(sender, e);
+                CalculateSretchTriangle();
+            }
         }
     }
 }

@@ -62,7 +62,7 @@ float CalculateAttenuation(float distance, float4 attenuation)
     return 1.0 / (attenuation.x + attenuation.y * distance + attenuation.z * distance * distance);
 }
 
-float4 PS(PS_IN input) : SV_Target
+float4 PS_Toon(PS_IN input) : SV_Target
 {
     float3 viewDir = normalize((float3)input.worldPos - consts.CameraPosition);
     float3 normal = normalize(input.normal);
@@ -110,6 +110,60 @@ float4 PS(PS_IN input) : SV_Target
         float4 specular = specularFactor * light.Color;
 
         // Суммируем вклад света с учетом затухания
+        result += (diffuse + specular) * attenuation;
+    }
+
+    return result;
+}
+
+float4 PS_Phong(PS_IN input) : SV_Target
+{
+    float3 viewDir = normalize((float3) input.worldPos - consts.CameraPosition);
+    float3 normal = normalize(input.normal);
+    float4 result = float4(0.1, 0.1, 0.1, 1.0) * input.col; // ?????????? ????????????
+
+    for (uint i = 0; i < consts.PointLights; i++)
+    {
+        PointLight light = PointLightsBuffer[i];
+        float3 lightDir;
+        float attenuation = light.Color.w;
+        
+        lightDir = light.Position.xyz - input.worldPos.xyz;
+        float distance = length(lightDir);
+        lightDir = normalize(lightDir);
+        attenuation /= distance * distance;
+
+        // ????????? ???????????? (Lambert)
+        float diffuseFactor = max(dot(normal, lightDir), 0.0);
+        float4 diffuse = diffuseFactor * light.Color * input.col;
+
+        // ??????????? ???????????? (Phong)
+        float3 reflectDir = reflect(lightDir, normal);
+        float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 100);
+        float4 specular = specularFactor * light.Color;
+
+        // ????????? ????? ????? ? ?????? ?????????
+        result += (diffuse + specular) * attenuation;
+    }
+
+    for (uint i = 0; i < consts.DirectionalLights; i++)
+    {
+        DirectionalLight light = DirectionalLightsBuffer[i];
+        float3 lightDir;
+        float attenuation = light.Color.w;
+        
+        lightDir = normalize(light.Direction.xyz);
+
+        // ????????? ???????????? (Lambert)
+        float diffuseFactor = max(dot(normal, lightDir), 0.0);
+        float4 diffuse = diffuseFactor * light.Color * input.col;
+
+        // ??????????? ???????????? (Phong)
+        float3 reflectDir = reflect(lightDir, normal);
+        float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 100);
+        float4 specular = specularFactor * light.Color;
+
+        // ????????? ????? ????? ? ?????? ?????????
         result += (diffuse + specular) * attenuation;
     }
 

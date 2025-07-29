@@ -946,35 +946,72 @@ namespace LayerSlicer.Forms
                     }
                 }
 
-                var ToonShadingControlPanel = new CollapsiblePanel("Мультяшный шейдер");
-                LightingControlPanel.Add(ToonShadingControlPanel);
+                var ShaderControlPanel = new CollapsiblePanel("Управление отрисовкой");
+                LightingControlPanel.Add(ShaderControlPanel);
                 {
-                    var IntencyControlLabel = new SelfStretchingLabel();
-                    ToonShadingControlPanel.Add(IntencyControlLabel);
+                    var ShaderSelectLabel = new SelfStretchingLabel();
+                    ShaderControlPanel.Add(ShaderSelectLabel);
                     {
-                        SetupLabel(IntencyControlLabel);
-                        IntencyControlLabel.Text =
-                            "Слайдер для управления количеством шагов в мультяшном шейдере";
+                        SetupLabel(ShaderSelectLabel);
+                        ShaderSelectLabel.Text =
+                            "Выбор типа отрисовки";
+                    }
+                    var ShaderSelectComboBox = new ComboBox() 
+                    {
+                        Font = GlobalConsts.BasicFont,
+                        FlatStyle = FlatStyle.Flat,
+                    };
+                    ShaderControlPanel.Add(ShaderSelectComboBox);
+                    {
+                        ShaderSelectComboBox.Items.Add("Мультяшный вид");
+                        ShaderSelectComboBox.Items.Add("Стандартный вид");
+                        //ShaderSelectComboBox.Items.Add("Вид сетки");
+                        ShaderSelectComboBox.SelectedIndex = 0;
+
+                        ShaderSelectComboBox.SelectedIndexChanged += (sender, e) =>
+                        {
+                            switch (ShaderSelectComboBox.SelectedIndex)
+                            {
+                            case 0:
+                                GlobalShaders.SelectToon();
+                                break;
+                            case 1:
+                                GlobalShaders.SelectPhong();
+                                break;
+                            }
+                        };
                     }
 
-                    var IntencyControlSlider = new SliderWrap()
+                    var ToonShadingControlPanel = new CollapsiblePanel("Настройки мультяшного вида");
+                    ShaderControlPanel.Add(ToonShadingControlPanel);
                     {
-                        SetReset = GlobalLighting.ToonShadingSteps,
-                        Minimum = 0,
-                        Maximum = 32,
-                        IsVerticalLayout = false,
-                        Integer = true,
-                    };
-                    ToonShadingControlPanel.Add(IntencyControlSlider);
-                    IntencyControlSlider.Reset();
-                    {
-                        int BufferSteps = 0;
-                        IntencyControlSlider.ValueChanged += (sender, e) =>
+                        var IntencyControlLabel = new SelfStretchingLabel();
+                        ToonShadingControlPanel.Add(IntencyControlLabel);
                         {
-                            BufferSteps = GlobalLighting.ToonShadingSteps;
-                            BufferSteps = (int)IntencyControlSlider.Value;
-                            GlobalLighting.ToonShadingSteps = BufferSteps;
+                            SetupLabel(IntencyControlLabel);
+                            IntencyControlLabel.Text =
+                                "Слайдер для управления количеством шагов в мультяшном шейдере";
+                        }
+
+                        var IntencyControlSlider = new SliderWrap()
+                        {
+                            SetReset = GlobalLighting.ToonShadingSteps,
+                            Minimum = 0,
+                            Maximum = 32,
+                            IsVerticalLayout = false,
+                            Integer = true,
                         };
+                        ToonShadingControlPanel.Add(IntencyControlSlider);
+                        IntencyControlSlider.Reset();
+                        {
+                            int BufferSteps = 0;
+                            IntencyControlSlider.ValueChanged += (sender, e) =>
+                            {
+                                BufferSteps = GlobalLighting.ToonShadingSteps;
+                                BufferSteps = (int)IntencyControlSlider.Value;
+                                GlobalLighting.ToonShadingSteps = BufferSteps;
+                            };
+                        }
                     }
                 }
             }

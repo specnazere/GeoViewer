@@ -48,40 +48,7 @@ namespace LayerSlicer
             var factory = _swapChain.GetParent<Factory>();
             factory.MakeWindowAssociation(MainWindow.GetRenderForm().Handle, WindowAssociationFlags.IgnoreAll);
 
-            // Compile Vertex and Pixel shaders
-            var vertexShaderByteCode = ShaderBytecode.CompileFromFile("shaders.fx", "VS", "vs_4_0");
-            var vertexShader = new VertexShader(_device, vertexShaderByteCode);
-
-            var pixelShaderByteCode = ShaderBytecode.CompileFromFile("shaders.fx", "PS", "ps_4_0");
-            var pixelShader = new PixelShader(_device, pixelShaderByteCode);
-
-            var signature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
-            // Layout from VertexShader input signature
-            var layout = new InputLayout(_device, signature, new[]
-                    {
-                        new InputElement("POSITION", 0, Format.R32G32B32A32_Float, GlobalConsts.Float4BytesSize * 0, 0),
-                        new InputElement("COLOR", 0, Format.R32G32B32A32_Float, GlobalConsts.Float4BytesSize * 1, 0),
-                        new InputElement("NORMAL", 0, Format.R32G32B32A32_Float, GlobalConsts.Float4BytesSize * 2, 0)
-                    });
-
-            // Create Constant Buffer
-            var contantBuffer = new Buffer(
-                _device,
-                Utilities.SizeOf<ShaderConstDataInput>() + 8,
-                ResourceUsage.Default,
-                BindFlags.ConstantBuffer,
-                CpuAccessFlags.None,
-                ResourceOptionFlags.None,
-                0);
-
-            // Prepare All the stages
-            context.InputAssembler.InputLayout = layout;
-            context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(GlobalModel.VerticesBuffer, Utilities.SizeOf<Vector4>() * 3, 0));
-            context.VertexShader.SetConstantBuffer(0, contantBuffer);
-            context.VertexShader.Set(vertexShader);
-            context.PixelShader.SetConstantBuffer(0, contantBuffer);
-            context.PixelShader.Set(pixelShader);
+            GlobalShaders.SelectToon();
 
             MainWindow.InitInteractForm();
 
@@ -206,7 +173,7 @@ namespace LayerSlicer
                 ShaderInput.ModelRotationTransformation.Transpose();
                 ShaderInput.CameraRotationTransformation.Transpose();
                 ShaderInput.ProjectionTransformation.Transpose();
-                context.UpdateSubresource(ref ShaderInput, contantBuffer);
+                context.UpdateSubresource(ref ShaderInput, GlobalShaders.GetBuffer());
 
                 // Draw the cube
                 context.Draw(54, 0);
@@ -216,14 +183,7 @@ namespace LayerSlicer
             });
 
             // Release all resources
-            signature.Dispose();
-            vertexShaderByteCode.Dispose();
-            vertexShader.Dispose();
-            pixelShaderByteCode.Dispose();
-            pixelShader.Dispose();
             GlobalModel.Dispose();
-            layout.Dispose();
-            contantBuffer.Dispose();
             depthBuffer.Dispose();
             depthView.Dispose();
             _renderView.Dispose();

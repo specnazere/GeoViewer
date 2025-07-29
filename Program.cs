@@ -42,7 +42,8 @@ namespace LayerSlicer
             Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.None, desc, out _device, out _swapChain);
             var context = _device.ImmediateContext;
 
-            GlobalModel.VerticesBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalConsts.CubeVertices);
+            GlobalModel.VerticesByTrianglesBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalConsts.CubeVerticesByTriangles);
+            GlobalModel.VerticesByLinesBuffer =     Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalConsts.CubeVerticesByLines);
 
             // Ignore all windows events
             var factory = _swapChain.GetParent<Factory>();

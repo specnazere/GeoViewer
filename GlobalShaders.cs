@@ -14,8 +14,11 @@ namespace LayerSlicer
         private static DeviceContext _deviceContext;
         private static Buffer _constsBuffer;
 
-        private static PixelShader _ToonShader;
-        private static PixelShader _PhongShader;
+        private static PixelShader _toonShader;
+        private static PixelShader _phongShader;
+        private static PixelShader _meshShader;
+
+        private static VertexBufferBinding[] _bufferBindings;
 
         static GlobalShaders()
         {
@@ -27,10 +30,13 @@ namespace LayerSlicer
             var vertexShader = new VertexShader(_device, vertexShaderByteCode);
 
             var toonPixelShaderToonByteCode = ShaderBytecode.CompileFromFile("shaders.fx", "PS_Toon", "ps_4_0");
-            _ToonShader = new PixelShader(_device, toonPixelShaderToonByteCode);
+            _toonShader = new PixelShader(_device, toonPixelShaderToonByteCode);
 
-            var pixelShaderPhongByteCode = ShaderBytecode.CompileFromFile("shaders.fx", "PS_Phong", "ps_4_0");
-            _PhongShader = new PixelShader(_device, pixelShaderPhongByteCode);
+            var phongPixelShaderByteCode = ShaderBytecode.CompileFromFile("shaders.fx", "PS_Phong", "ps_4_0");
+            _phongShader = new PixelShader(_device, phongPixelShaderByteCode);
+
+            var meshPixelShaderByteCode = ShaderBytecode.CompileFromFile("shaders.fx", "PS_Mesh", "ps_4_0");
+            _meshShader = new PixelShader(_device, meshPixelShaderByteCode);
 
             var signature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
             // Layout from VertexShader input signature
@@ -51,10 +57,15 @@ namespace LayerSlicer
                 ResourceOptionFlags.None,
                 0);
 
+            //
+            _bufferBindings = new[]
+            {
+                new VertexBufferBinding(GlobalModel.VerticesByTrianglesBuffer, Utilities.SizeOf<Vector4>() * 3, 0),
+                new VertexBufferBinding(GlobalModel.VerticesByLinesBuffer, Utilities.SizeOf<Vector4>() * 3, 0),
+            };
+
             // Prepare All the stages
             _deviceContext.InputAssembler.InputLayout = layout;
-            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            _deviceContext.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(GlobalModel.VerticesBuffer, Utilities.SizeOf<Vector4>() * 3, 0));
             _deviceContext.VertexShader.SetConstantBuffer(0, _constsBuffer);
             _deviceContext.VertexShader.Set(vertexShader);
             _deviceContext.PixelShader.SetConstantBuffer(0, _constsBuffer);
@@ -62,12 +73,23 @@ namespace LayerSlicer
 
         public static void SelectToon()
         {
-            _deviceContext.PixelShader.Set(_ToonShader);
+            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]);
+            _deviceContext.PixelShader.Set(_toonShader);
         }
 
         public static void SelectPhong()
         {
-            _deviceContext.PixelShader.Set(_PhongShader);
+            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]);
+            _deviceContext.PixelShader.Set(_phongShader);
+        }
+
+        public static void SelectMesh()
+        {
+            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
+            _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[1]);
+            _deviceContext.PixelShader.Set(_meshShader);
         }
 
         public static Buffer GetBuffer()

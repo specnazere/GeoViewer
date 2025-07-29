@@ -10,7 +10,8 @@ namespace LayerSlicer
         private static Vector3 _rotation = Vector3.Zero;
         private static Vector3 _scale = Vector3.One;
 
-        public static Buffer VerticesBuffer;
+        public static Buffer VerticesByTrianglesBuffer;
+        public static Buffer VerticesByLinesBuffer;
 
         public static event EventHandler? PositionChanged;
         public static event EventHandler? RotationChanged;
@@ -66,7 +67,7 @@ namespace LayerSlicer
 
         public static void Dispose()
         {
-            VerticesBuffer.Dispose();
+            VerticesByTrianglesBuffer.Dispose();
         }
 
         public static void SetPosition(float? X, float? Y, float? Z)

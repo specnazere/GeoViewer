@@ -965,7 +965,7 @@ namespace LayerSlicer.Forms
                     {
                         ShaderSelectComboBox.Items.Add("Мультяшный вид");
                         ShaderSelectComboBox.Items.Add("Стандартный вид");
-                        //ShaderSelectComboBox.Items.Add("Вид сетки");
+                        ShaderSelectComboBox.Items.Add("Вид сетки");
                         ShaderSelectComboBox.SelectedIndex = 0;
 
                         ShaderSelectComboBox.SelectedIndexChanged += (sender, e) =>
@@ -977,6 +977,9 @@ namespace LayerSlicer.Forms
                                 break;
                             case 1:
                                 GlobalShaders.SelectPhong();
+                                break;
+                            case 2:
+                                GlobalShaders.SelectMesh();
                                 break;
                             }
                         };

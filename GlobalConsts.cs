@@ -103,5 +103,6 @@ namespace LayerSlicer
         public Matrix ProjectionTransformation;
         public Vector3 CameraPosition;
         public uint PointLights;
+        public uint DirectionalLights;
     }
 }

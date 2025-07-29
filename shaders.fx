@@ -4,6 +4,12 @@ struct PointLight
     float4 Color; // RGB + интенсивность
 };
 
+struct DirectionalLight
+{
+    float4 Direction; // (x, y, z, 1.0) если позиция, (x, y, z, 0.0) если направление
+    float4 Color; // RGB + интенсивность
+};
+
 struct ShaderMatricesInput
 {
     float4x4 WorldViewProj;
@@ -13,10 +19,12 @@ struct ShaderMatricesInput
     float4x4 ProjectionTransformation;
     float3 CameraPosition;
     uint PointLights;
+    uint DirectionalLights;
 };
 ShaderMatricesInput consts;
 
 StructuredBuffer<PointLight> PointLightsBuffer : register(t0);
+StructuredBuffer<DirectionalLight> DirectionalLightsBuffer : register(t1);
 
 struct VS_IN
 {
@@ -67,18 +75,32 @@ float4 PS(PS_IN input) : SV_Target
         PointLight light = PointLightsBuffer[i];
         float3 lightDir;
         float attenuation = light.Color.w;
+        
+        lightDir = light.Position.xyz - input.worldPos.xyz;
+        float distance = length(lightDir);
+        lightDir = normalize(lightDir);
+        attenuation /= distance * distance;
 
-        if (light.Position.w == 0.0) // Направленный свет
-        {
-            lightDir = normalize(light.Position.xyz);
-        }
-        else // Точечный свет
-        {
-            lightDir = light.Position.xyz - input.worldPos.xyz;
-            float distance = length(lightDir);
-            lightDir = normalize(lightDir);
-            attenuation /= distance * distance;
-        }
+        // Диффузная составляющая (Lambert)
+        float diffuseFactor = max(dot(normal, lightDir), 0.0);
+        float4 diffuse = diffuseFactor * light.Color * input.col;
+
+        // Спекулярная составляющая (Phong)
+        float3 reflectDir = reflect(lightDir, normal);
+        float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 100);
+        float4 specular = specularFactor * light.Color;
+
+        // Суммируем вклад света с учетом затухания
+        result += (diffuse + specular) * attenuation;
+    }
+
+    for (uint i = 0; i < consts.DirectionalLights; i++)
+    {
+        DirectionalLight light = DirectionalLightsBuffer[i];
+        float3 lightDir;
+        float attenuation = light.Color.w;
+        
+        lightDir = normalize(light.Direction.xyz);
 
         // Диффузная составляющая (Lambert)
         float diffuseFactor = max(dot(normal, lightDir), 0.0);

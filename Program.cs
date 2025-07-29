@@ -67,7 +67,7 @@ namespace LayerSlicer
             // Create Constant Buffer
             var contantBuffer = new Buffer(
                 _device,
-                Utilities.SizeOf<ShaderMatricesInput>(),
+                Utilities.SizeOf<ShaderMatricesInput>() + 12,
                 ResourceUsage.Default,
                 BindFlags.ConstantBuffer,
                 CpuAccessFlags.None,
@@ -100,6 +100,14 @@ namespace LayerSlicer
             };
             GlobalLighting.AddPointLight(startingPointLight2, "starting2");
             MainWindow.GetInteractForm().ConnectPointLight(startingPointLight2, "starting2");
+
+            var startingDirectionalLight1 = new Lighting.Structs.DirectionalLightObject()
+            {
+                Direction = new Vector4(0, 0, 5, 1),
+                Color = new Vector4(0.1f, 1f, 0.1f, 1)
+            };
+            GlobalLighting.AddDirectionalLight(startingDirectionalLight1, "starting1");
+            MainWindow.GetInteractForm().ConnectDirectionalLight(startingDirectionalLight1, "starting1");
 
             // Use clock
             GlobalUpdater.Update();
@@ -190,6 +198,7 @@ namespace LayerSlicer
                     ProjectionTransformation = GlobalCamera.GetProjMatrix(),
                     CameraPosition = GlobalCamera.Position,
                     PointLights = GlobalLighting.GetActivePointLightsCount(),
+                    DirectionalLights = GlobalLighting.GetActiveDirectionalLightsCount(),
                 };
                 ShaderInput.WorldViewProj.Transpose();
                 ShaderInput.ModelRotationTransformation.Transpose();

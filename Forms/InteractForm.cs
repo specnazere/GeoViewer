@@ -10,6 +10,7 @@ namespace LayerSlicer.Forms
         private Point _mouseLoc;
 
         private CollapsiblePanel _pointLightsContainer;
+        private CollapsiblePanel _directionalLightsContainer;
 
         private ScrollBar _scrollBar;
 
@@ -536,170 +537,342 @@ namespace LayerSlicer.Forms
             }
 
             var LightingControlPanel = new CollapsiblePanel("Контроль освещения");
-            _pointLightsContainer = LightingControlPanel;
             Add(LightingControlPanel);
             {
-                var PointLightsCreationPanel = new CollapsiblePanel("Новый точечный источник");
-                LightingControlPanel.Add(PointLightsCreationPanel);
+                var PointLightsControlPanel = new CollapsiblePanel("Точечные источники");
+                _pointLightsContainer = PointLightsControlPanel;
+                LightingControlPanel.Add(PointLightsControlPanel);
                 {
-                    var AddableLight = new PointLightObject
+                    var PointLightsCreationPanel = new CollapsiblePanel("Новый точечный источник");
+                    PointLightsControlPanel.Add(PointLightsCreationPanel);
                     {
-                        Position = new SharpDX.Vector4(0, 0, 0, 1),
-                        Color = new SharpDX.Vector4(1, 1, 1, 100) // Белый цвет по умолчанию
-                    };
-                    GlobalLighting.AddPointLight(AddableLight, "Demonstrative");
-
-                    SharpDX.Vector4 savedColor = AddableLight.Color;
-                    PointLightsCreationPanel.Toggled += (sender, e) =>
-                    {
-                        if (PointLightsCreationPanel.IsCollapsed())
+                        var AddableLight = new PointLightObject
                         {
-                            savedColor = AddableLight.Color;
-                            AddableLight.Color = SharpDX.Vector4.Zero;
+                            Position = new SharpDX.Vector4(0, 0, 0, 1),
+                            Color = new SharpDX.Vector4(1, 1, 1, 100) // Белый цвет по умолчанию
+                        };
+                        GlobalLighting.AddPointLight(AddableLight, "Demonstrative");
+
+                        SharpDX.Vector4 savedColor = AddableLight.Color;
+                        PointLightsCreationPanel.Toggled += (sender, e) =>
+                        {
+                            if (PointLightsCreationPanel.IsCollapsed())
+                            {
+                                savedColor = AddableLight.Color;
+                                AddableLight.Color = SharpDX.Vector4.Zero;
+                            }
+                            else
+                            {
+                                AddableLight.Color = savedColor;
+                            }
+                        };
+
+                        var PositionControlLabel = new SelfStretchingLabel();
+                        PointLightsCreationPanel.Add(PositionControlLabel);
+                        {
+                            SetupLabel(PositionControlLabel);
+                            PositionControlLabel.Text =
+                                "Слайдеры для размещения вдоль осей X, Y и Z соотвественно";
                         }
-                        else
+
+                        var PositionControlSliders = new SliderGroup()
                         {
-                            AddableLight.Color = savedColor;
+                            SetReset = 0,
+                            Minimum = -50,
+                            Maximum = 50,
+                            Height = 200,
+                        };
+                        PointLightsCreationPanel.Add(PositionControlSliders);
+                        {
+                            PositionControlSliders.Reset();
+
+                            SharpDX.Vector4 bufferPosition = SharpDX.Vector4.Zero;
+                            PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferPosition = AddableLight.Position;
+                                bufferPosition.X = PositionControlSliders.SliderWraps[0].Value;
+                                AddableLight.Position = bufferPosition;
+                            };
+                            PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferPosition = AddableLight.Position;
+                                bufferPosition.Y = PositionControlSliders.SliderWraps[1].Value;
+                                AddableLight.Position = bufferPosition;
+                            };
+                            PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferPosition = AddableLight.Position;
+                                bufferPosition.Z = PositionControlSliders.SliderWraps[2].Value;
+                                AddableLight.Position = bufferPosition;
+                            };
                         }
-                    };
 
-                    var PositionControlLabel = new SelfStretchingLabel();
-                    PointLightsCreationPanel.Add(PositionControlLabel);
-                    {
-                        SetupLabel(PositionControlLabel);
-                        PositionControlLabel.Text =
-                            "Слайдеры для размещения вдоль осей X, Y и Z соотвественно";
-                    }
-
-                    var PositionControlSliders = new SliderGroup()
-                    {
-                        SetReset = 0,
-                        Minimum = -50,
-                        Maximum = 50,
-                        Height = 200,
-                    };
-                    PointLightsCreationPanel.Add(PositionControlSliders);
-                    {
-                        PositionControlSliders.Reset();
-
-                        SharpDX.Vector4 bufferPosition = SharpDX.Vector4.Zero;
-                        PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        PointLightsCreationPanel.Add(ColorControlLabel);
                         {
-                            bufferPosition = AddableLight.Position;
-                            bufferPosition.X = PositionControlSliders.SliderWraps[0].Value;
-                            AddableLight.Position = bufferPosition;
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета света по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
                         };
-                        PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                        PointLightsCreationPanel.Add(ColorControlSliders);
+                        ColorControlSliders.Reset();
                         {
-                            bufferPosition = AddableLight.Position;
-                            bufferPosition.Y = PositionControlSliders.SliderWraps[1].Value;
-                            AddableLight.Position = bufferPosition;
-                        };
-                        PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
-                        {
-                            bufferPosition = AddableLight.Position;
-                            bufferPosition.Z = PositionControlSliders.SliderWraps[2].Value;
-                            AddableLight.Position = bufferPosition;
-                        };
-                    }
+                            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                        }
 
-                    var ColorControlLabel = new SelfStretchingLabel();
-                    PointLightsCreationPanel.Add(ColorControlLabel);
-                    {
-                        SetupLabel(ColorControlLabel);
-                        ColorControlLabel.Text =
-                            "Слайдеры для изменения цвета света по компонентам RGB";
-                    }
+                        var IntencyControlLabel = new SelfStretchingLabel();
+                        PointLightsCreationPanel.Add(IntencyControlLabel);
+                        {
+                            SetupLabel(IntencyControlLabel);
+                            IntencyControlLabel.Text =
+                                "Слайдер для изменения интенсивности освещения";
+                        }
 
-                    var ColorControlSliders = new SliderGroup()
-                    {
-                        SetReset = 256,
-                        Minimum = 0,
-                        Maximum = 256,
-                        Height = 200,
-                    };
-                    PointLightsCreationPanel.Add(ColorControlSliders);
-                    ColorControlSliders.Reset();
-                    {
-                        SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
-                        ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                        var IntencyControlSlider = new SliderWrap()
                         {
-                            bufferColor = AddableLight.Color;
-                            bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
-                            AddableLight.Color = bufferColor;
+                            SetReset = 10,
+                            Minimum = 0,
+                            Maximum = 1000,
+                            IsVerticalLayout = false,
                         };
-                        ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                        PointLightsCreationPanel.Add(IntencyControlSlider);
+                        IntencyControlSlider.Reset();
                         {
-                            bufferColor = AddableLight.Color;
-                            bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
-                            AddableLight.Color = bufferColor;
-                        };
-                        ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
-                        {
-                            bufferColor = AddableLight.Color;
-                            bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
-                            AddableLight.Color = bufferColor;
-                        };
-                    }
+                            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+                            IntencyControlSlider.ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.W = IntencyControlSlider.Value;
+                                AddableLight.Color = bufferColor;
+                            };
+                        }
 
-                    var IntencyControlLabel = new SelfStretchingLabel();
-                    PointLightsCreationPanel.Add(IntencyControlLabel);
-                    {
-                        SetupLabel(IntencyControlLabel);
-                        IntencyControlLabel.Text =
-                            "Слайдер для изменения интенсивности освещения";
-                    }
-
-                    var IntencyControlSlider = new SliderWrap()
-                    {
-                        SetReset = 10,
-                        Minimum = 0,
-                        Maximum = 1000,
-                        IsVerticalLayout = false,
-                    };
-                    PointLightsCreationPanel.Add(IntencyControlSlider);
-                    IntencyControlSlider.Reset();
-                    {
-                        SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
-                        IntencyControlSlider.ValueChanged += (sender, e) =>
+                        var LightName = new TextBox()
                         {
-                            bufferColor = AddableLight.Color;
-                            bufferColor.W = IntencyControlSlider.Value;
-                            AddableLight.Color = bufferColor;
+                            TextAlign = HorizontalAlignment.Left,
+                            Font = GlobalConsts.BasicFont,
+                            Text = "New point light name",
+                            Dock = DockStyle.None,
+                        };
+                        PointLightsCreationPanel.Add(LightName);
+
+                        var NewLightButton = new Button()
+                        {
+                            FlatStyle = FlatStyle.Flat,
+                            TextAlign = ContentAlignment.MiddleCenter,
+                            BackColor = Color.White,
+                            ForeColor = Color.Black,
+                            Text = "NewLight",
+                            Font = GlobalConsts.BasicFont,
+                            Dock = DockStyle.None,
+                            Height = 26,
+                        };
+                        PointLightsCreationPanel.Add(NewLightButton);
+                        NewLightButton.Click += (sedner, e) =>
+                        {
+                            var coppiedPointLight = new PointLightObject
+                            {
+                                Color = AddableLight.Color,
+                                Position = AddableLight.Position,
+                            };
+                            GlobalLighting.AddPointLight(coppiedPointLight, LightName.Text);
+                            ConnectPointLight(coppiedPointLight, LightName.Text);
                         };
                     }
+                }
 
-                    var LightName = new TextBox()
+                var DirectionalLightsControlPanel = new CollapsiblePanel("Направленные источники");
+                _directionalLightsContainer = DirectionalLightsControlPanel;
+                LightingControlPanel.Add(DirectionalLightsControlPanel);
+                {
+                    var DirectionalLightsCreationPanel = new CollapsiblePanel("Новый направленный источник");
+                    DirectionalLightsControlPanel.Add(DirectionalLightsCreationPanel);
                     {
-                        TextAlign = HorizontalAlignment.Left,
-                        Font = GlobalConsts.BasicFont,
-                        Text = "New point light name",
-                        Dock = DockStyle.None,
-                    };
-                    PointLightsCreationPanel.Add(LightName);
-
-                    var NewLightButton = new Button()
-                    {
-                        FlatStyle = FlatStyle.Flat,
-                        TextAlign = ContentAlignment.MiddleCenter,
-                        BackColor = Color.White,
-                        ForeColor = Color.Black,
-                        Text = "NewLight",
-                        Font = GlobalConsts.BasicFont,
-                        Dock = DockStyle.None,
-                        Height = 26,
-                    };
-                    PointLightsCreationPanel.Add(NewLightButton);
-                    NewLightButton.Click += (sedner, e) =>
-                    {
-                        var coppiedPointLight = new PointLightObject
+                        var AddableLight = new DirectionalLightObject
                         {
-                            Color = AddableLight.Color,
-                            Position = AddableLight.Position,
+                            Direction = new SharpDX.Vector4(0, 0, 0, 1),
+                            Color = new SharpDX.Vector4(1, 1, 1, 100) // Белый цвет по умолчанию
                         };
-                        GlobalLighting.AddPointLight(coppiedPointLight, LightName.Text);
-                        ConnectPointLight(coppiedPointLight, LightName.Text); 
-                    };
+                        GlobalLighting.AddDirectionalLight(AddableLight, "Demonstrative");
+
+                        SharpDX.Vector4 savedColor = AddableLight.Color;
+                        DirectionalLightsCreationPanel.Toggled += (sender, e) =>
+                        {
+                            if (DirectionalLightsCreationPanel.IsCollapsed())
+                            {
+                                savedColor = AddableLight.Color;
+                                AddableLight.Color = SharpDX.Vector4.Zero;
+                            }
+                            else
+                            {
+                                AddableLight.Color = savedColor;
+                            }
+                        };
+
+                        var PositionControlLabel = new SelfStretchingLabel();
+                        DirectionalLightsCreationPanel.Add(PositionControlLabel);
+                        {
+                            SetupLabel(PositionControlLabel);
+                            PositionControlLabel.Text =
+                                "Слайдеры для размещения вдоль осей X, Y и Z соотвественно";
+                        }
+
+                        var DirectionControlSliders = new SliderGroup()
+                        {
+                            SetReset = 0,
+                            Minimum = -50,
+                            Maximum = 50,
+                            Height = 200,
+                        };
+                        DirectionalLightsCreationPanel.Add(DirectionControlSliders);
+                        {
+                            DirectionControlSliders.Reset();
+
+                            SharpDX.Vector4 bufferDirection = SharpDX.Vector4.Zero;
+                            DirectionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferDirection = AddableLight.Direction;
+                                bufferDirection.X = DirectionControlSliders.SliderWraps[0].Value;
+                                AddableLight.Direction = bufferDirection;
+                            };
+                            DirectionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferDirection = AddableLight.Direction;
+                                bufferDirection.Y = DirectionControlSliders.SliderWraps[1].Value;
+                                AddableLight.Direction = bufferDirection;
+                            };
+                            DirectionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferDirection = AddableLight.Direction;
+                                bufferDirection.Z = DirectionControlSliders.SliderWraps[2].Value;
+                                AddableLight.Direction = bufferDirection;
+                            };
+                        }
+
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        DirectionalLightsCreationPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета света по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        DirectionalLightsCreationPanel.Add(ColorControlSliders);
+                        ColorControlSliders.Reset();
+                        {
+                            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                        }
+
+                        var IntencyControlLabel = new SelfStretchingLabel();
+                        DirectionalLightsCreationPanel.Add(IntencyControlLabel);
+                        {
+                            SetupLabel(IntencyControlLabel);
+                            IntencyControlLabel.Text =
+                                "Слайдер для изменения интенсивности освещения";
+                        }
+
+                        var IntencyControlSlider = new SliderWrap()
+                        {
+                            SetReset = 1,
+                            Minimum = 0,
+                            Maximum = 10,
+                            IsVerticalLayout = false,
+                        };
+                        DirectionalLightsCreationPanel.Add(IntencyControlSlider);
+                        IntencyControlSlider.Reset();
+                        {
+                            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+                            IntencyControlSlider.ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.W = IntencyControlSlider.Value;
+                                AddableLight.Color = bufferColor;
+                            };
+                        }
+
+                        var LightName = new TextBox()
+                        {
+                            TextAlign = HorizontalAlignment.Left,
+                            Font = GlobalConsts.BasicFont,
+                            Text = "New directional light name",
+                            Dock = DockStyle.None,
+                        };
+                        DirectionalLightsCreationPanel.Add(LightName);
+
+                        var NewLightButton = new Button()
+                        {
+                            FlatStyle = FlatStyle.Flat,
+                            TextAlign = ContentAlignment.MiddleCenter,
+                            BackColor = Color.White,
+                            ForeColor = Color.Black,
+                            Text = "NewLight",
+                            Font = GlobalConsts.BasicFont,
+                            Dock = DockStyle.None,
+                            Height = 26,
+                        };
+                        DirectionalLightsCreationPanel.Add(NewLightButton);
+                        NewLightButton.Click += (sedner, e) =>
+                        {
+                            var coppiedDirectionalLight = new DirectionalLightObject
+                            {
+                                Color = AddableLight.Color,
+                                Direction = AddableLight.Direction,
+                            };
+                            GlobalLighting.AddDirectionalLight(coppiedDirectionalLight, LightName.Text);
+                            ConnectDirectionalLight(coppiedDirectionalLight, LightName.Text);
+                        };
+                    }
                 }
             }
 
@@ -840,6 +1013,142 @@ namespace LayerSlicer.Forms
             {
                 _pointLightsContainer.Remove(pointLightAccessPanel);
                 GlobalLighting.RemovePointLight(name);
+            };
+        }
+
+        public void ConnectDirectionalLight(DirectionalLightObject newDirectionalLight, string name)
+        {
+            var directionalLightAccessPanel = new CollapsiblePanel(name);
+            _directionalLightsContainer.Add(directionalLightAccessPanel);
+
+            var PositionControlLabel = new SelfStretchingLabel();
+            directionalLightAccessPanel.Add(PositionControlLabel);
+            {
+                SetupLabel(PositionControlLabel);
+                PositionControlLabel.Text =
+                    "Слайдеры для перемещения вдоль осей X, Y и Z соотвественно";
+            }
+
+            var PositionControlSliders = new SliderGroup()
+            {
+                SetReset = 0,
+                Minimum = -50,
+                Maximum = 50,
+                Height = 200,
+            };
+            PositionControlSliders.SliderWraps[0].SetReset = newDirectionalLight.Direction.X;
+            PositionControlSliders.SliderWraps[1].SetReset = newDirectionalLight.Direction.Y;
+            PositionControlSliders.SliderWraps[2].SetReset = newDirectionalLight.Direction.Z;
+            directionalLightAccessPanel.Add(PositionControlSliders);
+            {
+                PositionControlSliders.Reset();
+
+                SharpDX.Vector4 bufferDirection = SharpDX.Vector4.Zero;
+                PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                {
+                    bufferDirection = newDirectionalLight.Direction;
+                    bufferDirection.X = PositionControlSliders.SliderWraps[0].Value;
+                    newDirectionalLight.Direction = bufferDirection;
+                };
+                PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                {
+                    bufferDirection = newDirectionalLight.Direction;
+                    bufferDirection.Y = PositionControlSliders.SliderWraps[1].Value;
+                    newDirectionalLight.Direction = bufferDirection;
+                };
+                PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                {
+                    bufferDirection = newDirectionalLight.Direction;
+                    bufferDirection.Z = PositionControlSliders.SliderWraps[2].Value;
+                    newDirectionalLight.Direction = bufferDirection;
+                };
+            }
+
+            var ColorControlLabel = new SelfStretchingLabel();
+            directionalLightAccessPanel.Add(ColorControlLabel);
+            {
+                SetupLabel(ColorControlLabel);
+                ColorControlLabel.Text =
+                    "Слайдеры для изменения цвета света по компонентам RGB";
+            }
+
+            var ColorControlSliders = new SliderGroup()
+            {
+                SetReset = 256,
+                Minimum = 0,
+                Maximum = 256,
+                Height = 200,
+            };
+            ColorControlSliders.SliderWraps[0].SetReset = newDirectionalLight.Color.X * 256;
+            ColorControlSliders.SliderWraps[1].SetReset = newDirectionalLight.Color.Y * 256;
+            ColorControlSliders.SliderWraps[2].SetReset = newDirectionalLight.Color.Z * 256;
+            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+            directionalLightAccessPanel.Add(ColorControlSliders);
+            ColorControlSliders.Reset();
+            {
+                ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newDirectionalLight.Color;
+                    bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                    newDirectionalLight.Color = bufferColor;
+                };
+                ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newDirectionalLight.Color;
+                    bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                    newDirectionalLight.Color = bufferColor;
+                };
+                ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newDirectionalLight.Color;
+                    bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                    newDirectionalLight.Color = bufferColor;
+                };
+            }
+
+            var IntencyControlLabel = new SelfStretchingLabel();
+            directionalLightAccessPanel.Add(IntencyControlLabel);
+            {
+                SetupLabel(IntencyControlLabel);
+                IntencyControlLabel.Text =
+                    "Слайдер для изменения интенсивности освещения";
+            }
+
+            var IntencyControlSlider = new SliderWrap()
+            {
+                SetReset = newDirectionalLight.Color.W,
+                Minimum = 0,
+                Maximum = 1000,
+                IsVerticalLayout = false,
+            };
+            directionalLightAccessPanel.Add(IntencyControlSlider);
+            IntencyControlSlider.Reset();
+            {
+                IntencyControlSlider.ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newDirectionalLight.Color;
+                    bufferColor.W = IntencyControlSlider.Value;
+                    newDirectionalLight.Color = bufferColor;
+                };
+            }
+
+            var lightDeleteButton = new Button()
+            {
+                FlatStyle = FlatStyle.Flat,
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.White,
+                ForeColor = Color.Black,
+                Text = "DELETE",
+                Font = GlobalConsts.BasicFont,
+                Dock = DockStyle.None,
+                Height = 26,
+            };
+            directionalLightAccessPanel.Add(lightDeleteButton);
+
+            lightDeleteButton.Click += (sender, e) =>
+            {
+                _directionalLightsContainer.Remove(directionalLightAccessPanel);
+                GlobalLighting.RemoveDirectionalLight(name);
             };
         }
 

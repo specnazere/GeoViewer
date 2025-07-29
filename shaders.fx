@@ -42,10 +42,6 @@ struct PS_IN
     float3 normal : TEXCOORD1; // Нормаль в мировом пространстве
 };
 
-// Параметры материала
-float4 ambientColor = float4(0.1, 0.1, 0.1, 1.0); // Амбиентный цвет
-float specularPower = 32.0; // Степень блеска (shininess)
-
 PS_IN VS(VS_IN input)
 {
     PS_IN output = (PS_IN) 0;
@@ -73,21 +69,19 @@ float4 PS(PS_IN input) : SV_Target
     for (uint i = 0; i < consts.PointLights; i++)
     {
         PointLight light = PointLightsBuffer[i];
-        float3 lightDir;
-        float attenuation = light.Color.w;
-        
-        lightDir = light.Position.xyz - input.worldPos.xyz;
-        float distance = length(lightDir);
-        lightDir = normalize(lightDir);
-        attenuation /= distance * distance;
+        float3 lightDir = normalize(light.Position.xyz - input.worldPos.xyz);
+        float distance = length(light.Position.xyz - input.worldPos.xyz);
+        float attenuation = light.Color.w / (distance * distance);
 
-        // Диффузная составляющая (Lambert)
+        // Диффузная составляющая (дискретизация)
         float diffuseFactor = max(dot(normal, lightDir), 0.0);
+        diffuseFactor = floor(diffuseFactor * 3) / 2; // Разбиение на ступени
         float4 diffuse = diffuseFactor * light.Color * input.col;
 
         // Спекулярная составляющая (Phong)
         float3 reflectDir = reflect(lightDir, normal);
         float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 100);
+        specularFactor = step(0.9, specularFactor); // Резкий блик
         float4 specular = specularFactor * light.Color;
 
         // Суммируем вклад света с учетом затухания
@@ -104,11 +98,13 @@ float4 PS(PS_IN input) : SV_Target
 
         // Диффузная составляющая (Lambert)
         float diffuseFactor = max(dot(normal, lightDir), 0.0);
+        diffuseFactor = floor(diffuseFactor * 3) / 2; // Разбиение на ступени
         float4 diffuse = diffuseFactor * light.Color * input.col;
 
         // Спекулярная составляющая (Phong)
         float3 reflectDir = reflect(lightDir, normal);
         float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 100);
+        specularFactor = step(0.9, specularFactor); // Резкий блик
         float4 specular = specularFactor * light.Color;
 
         // Суммируем вклад света с учетом затухания

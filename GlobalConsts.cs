@@ -92,9 +92,13 @@ namespace LayerSlicer
 
         public const int Float4BytesSize = 16;
         public const int Float4x4BytesSize = Float4BytesSize * 4;
+
+        public static readonly Vector4 BaseAmbiendLight = new(0.2f, 0.2f, 0.2f, 1);
+
+        public const int BasicToonShaderSteps = 8;
     }
 
-    internal struct ShaderMatricesInput()
+    internal struct ShaderConstDataInput()
     {
         public Matrix WorldViewProj;
         public Matrix ModelRotationTransformation;
@@ -104,5 +108,7 @@ namespace LayerSlicer
         public Vector3 CameraPosition;
         public uint PointLights;
         public uint DirectionalLights;
+        public float ToonShadingSteps;
+        public Vector4 AmbiendLighting;
     }
 }

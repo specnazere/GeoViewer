@@ -874,6 +874,109 @@ namespace LayerSlicer.Forms
                         };
                     }
                 }
+
+                var AmbiendLightControlPanel = new CollapsiblePanel("Рассеянный свет");
+                LightingControlPanel.Add(AmbiendLightControlPanel);
+                {
+                    var ColorControlLabel = new SelfStretchingLabel();
+                    AmbiendLightControlPanel.Add(ColorControlLabel);
+                    {
+                        SetupLabel(ColorControlLabel);
+                        ColorControlLabel.Text =
+                            "Слайдеры для изменения цвета рассеянного света по компонентам RGB";
+                    }
+
+                    var ColorControlSliders = new SliderGroup()
+                    {
+                        SetReset = 256,
+                        Minimum = 0,
+                        Maximum = 256,
+                        Height = 200,
+                    };
+                    AmbiendLightControlPanel.Add(ColorControlSliders);
+                    ColorControlSliders.Reset();
+                    {
+                        SharpDX.Vector4 bufferLight = SharpDX.Vector4.Zero;
+                        ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                        {
+                            bufferLight = GlobalLighting.AmbiendLighting;
+                            bufferLight.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                            GlobalLighting.AmbiendLighting = bufferLight;
+                        };
+                        ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                        {
+                            bufferLight = GlobalLighting.AmbiendLighting;
+                            bufferLight.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                            GlobalLighting.AmbiendLighting = bufferLight;
+                        };
+                        ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                        {
+                            bufferLight = GlobalLighting.AmbiendLighting;
+                            bufferLight.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                            GlobalLighting.AmbiendLighting = bufferLight;
+                        };
+                    }
+
+
+                    var IntencyControlLabel = new SelfStretchingLabel();
+                    AmbiendLightControlPanel.Add(IntencyControlLabel);
+                    {
+                        SetupLabel(IntencyControlLabel);
+                        IntencyControlLabel.Text =
+                            "Слайдер для изменения интенсивности рассеянного освещения";
+                    }
+
+                    var IntencyControlSlider = new SliderWrap()
+                    {
+                        SetReset = 1,
+                        Minimum = 0,
+                        Maximum = 10,
+                        IsVerticalLayout = false,
+                    };
+                    AmbiendLightControlPanel.Add(IntencyControlSlider);
+                    IntencyControlSlider.Reset();
+                    {
+                        SharpDX.Vector4 bufferLight = SharpDX.Vector4.Zero;
+                        IntencyControlSlider.ValueChanged += (sender, e) =>
+                        {
+                            bufferLight = GlobalLighting.AmbiendLighting;
+                            bufferLight.W = IntencyControlSlider.Value;
+                            GlobalLighting.AmbiendLighting = bufferLight;
+                        };
+                    }
+                }
+
+                var ToonShadingControlPanel = new CollapsiblePanel("Мультяшный шейдер");
+                LightingControlPanel.Add(ToonShadingControlPanel);
+                {
+                    var IntencyControlLabel = new SelfStretchingLabel();
+                    ToonShadingControlPanel.Add(IntencyControlLabel);
+                    {
+                        SetupLabel(IntencyControlLabel);
+                        IntencyControlLabel.Text =
+                            "Слайдер для управления количеством шагов в мультяшном шейдере";
+                    }
+
+                    var IntencyControlSlider = new SliderWrap()
+                    {
+                        SetReset = GlobalLighting.ToonShadingSteps,
+                        Minimum = 0,
+                        Maximum = 32,
+                        IsVerticalLayout = false,
+                        Integer = true,
+                    };
+                    ToonShadingControlPanel.Add(IntencyControlSlider);
+                    IntencyControlSlider.Reset();
+                    {
+                        int BufferSteps = 0;
+                        IntencyControlSlider.ValueChanged += (sender, e) =>
+                        {
+                            BufferSteps = GlobalLighting.ToonShadingSteps;
+                            BufferSteps = (int)IntencyControlSlider.Value;
+                            GlobalLighting.ToonShadingSteps = BufferSteps;
+                        };
+                    }
+                }
             }
 
             OnSizeChanged(null, EventArgs.Empty);

@@ -2,7 +2,7 @@
 
 namespace LayerSlicer.Forms
 {
-    public class FloatSlider : Control
+    public class BrushSlider : Control
     {
         // Slider values
         private float _min = 0;
@@ -18,6 +18,7 @@ namespace LayerSlicer.Forms
         private bool _dragging = false;
 
         public bool Horisontal = false;
+        public bool Integer = false;
 
         public event EventHandler? ValueChanged;
 
@@ -27,7 +28,14 @@ namespace LayerSlicer.Forms
             get => _min;
             set
             {
-                _min = value;
+                if (Integer)
+                {
+                    _min = (float)Math.Round(value);
+                }
+                else
+                {
+                    _min = value;
+                }
                 Value = _value;
                 SetReset = _resetValue;
             }
@@ -39,7 +47,14 @@ namespace LayerSlicer.Forms
             get => _max;
             set
             {
-                _max = value;
+                if (Integer)
+                {
+                    _max = (float)Math.Round(value);
+                }
+                else
+                {
+                    _max = value;
+                }
                 Value = _value;
                 SetReset = _resetValue;
             }
@@ -53,8 +68,15 @@ namespace LayerSlicer.Forms
             {
                 if (_value != value)
                 {
-                    _value = value;
-                    _fillValue = (value - _min) / (_max - _min);
+                    if (Integer)
+                    {
+                        _value = (float)Math.Round(value);
+                    }
+                    else
+                    {
+                        _value = value;
+                    }
+                    _fillValue = (_value - _min) / (_max - _min);
                     ValueChanged?.Invoke(this, EventArgs.Empty);
                     Invalidate();
                 }
@@ -66,12 +88,19 @@ namespace LayerSlicer.Forms
         {
             set
             {
-                _resetValue = value;
+                if (Integer)
+                {
+                    _resetValue = (float)Math.Round(value);
+                }
+                else
+                {
+                    _resetValue = value;
+                }
                 _postResetFillValue = (_resetValue - _min) / (_max - _min);
             }
         }
 
-        public FloatSlider()
+        public BrushSlider()
         {
             // Base setup
             SetStyle(

@@ -4,9 +4,8 @@ namespace LayerSlicer.Forms
 {
     internal class SliderWrap : Control
     {
-
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-        public FloatSlider Slider { get; private set; }
+        public BrushSlider Slider { get; private set; }
 
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
         public TextBox HandInput { get; private set; }
@@ -50,12 +49,20 @@ namespace LayerSlicer.Forms
             }
         }
 
+        private bool _integer = true;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool Integer
+        {
+            get => Slider.Integer;
+            set => Slider.Integer = value;
+        }
+
         public event EventHandler ValueChanged;
 
         public SliderWrap()
         {
             // Initialize components
-            Slider = new FloatSlider
+            Slider = new BrushSlider
             {
                 Minimum = -100,
                 Maximum = 100,
@@ -84,22 +91,6 @@ namespace LayerSlicer.Forms
                 Height = HandInput.Height,
             };
 
-            /*
-            // Setup layout
-            if (IsVerticalLayout)
-            {
-                Slider.Height = 70;
-                HandInput.Height = 20;
-                ResetButton.Height = 30;
-            }
-            else
-            {
-                Slider.Width = 70;
-                HandInput.Width = 50;
-                ResetButton.Width = 60;
-            }
-            */
-
             // Add controls
             Controls.Add(Slider);
             Controls.Add(HandInput);
@@ -122,13 +113,27 @@ namespace LayerSlicer.Forms
                 if (isUpdating) return;
 
                 isUpdating = true;
-                if (float.TryParse(HandInput.Text, out float value))
+                if (Integer)
                 {
-                    Slider.Value = Math.Clamp(value, Slider.Minimum, Slider.Maximum);
+                    if (int.TryParse(HandInput.Text, out int value))
+                    {
+                        Slider.Value = Math.Clamp(value, Slider.Minimum, Slider.Maximum);
+                    }
+                    else
+                    {
+                        HandInput.Text = Slider.Value.ToString();
+                    }
                 }
                 else
                 {
-                    HandInput.Text = Slider.Value.ToString();
+                    if (float.TryParse(HandInput.Text, out float value))
+                    {
+                        Slider.Value = Math.Clamp(value, Slider.Minimum, Slider.Maximum);
+                    }
+                    else
+                    {
+                        HandInput.Text = Slider.Value.ToString();
+                    }
                 }
                 isUpdating = false;
             };

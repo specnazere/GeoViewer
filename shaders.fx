@@ -10,7 +10,7 @@ struct DirectionalLight
     float4 Color; // RGB + интенсивность
 };
 
-struct ShaderMatricesInput
+struct ShaderConstsInput
 {
     float4x4 WorldViewProj;
     float4x4 ModelRotationTransformation;
@@ -20,8 +20,10 @@ struct ShaderMatricesInput
     float3 CameraPosition;
     uint PointLights;
     uint DirectionalLights;
+    float ToonShadingSteps;
+    float4 AmbiendLighting;
 };
-ShaderMatricesInput consts;
+ShaderConstsInput consts;
 
 StructuredBuffer<PointLight> PointLightsBuffer : register(t0);
 StructuredBuffer<DirectionalLight> DirectionalLightsBuffer : register(t1);
@@ -64,7 +66,7 @@ float4 PS(PS_IN input) : SV_Target
 {
     float3 viewDir = normalize((float3)input.worldPos - consts.CameraPosition);
     float3 normal = normalize(input.normal);
-    float4 result = float4(0.1, 0.1, 0.1, 1.0) * input.col; // Амбиентная составляющая
+    float4 result = consts.AmbiendLighting * consts.AmbiendLighting.w * input.col; // Амбиентная составляющая
 
     for (uint i = 0; i < consts.PointLights; i++)
     {
@@ -75,7 +77,7 @@ float4 PS(PS_IN input) : SV_Target
 
         // Диффузная составляющая (дискретизация)
         float diffuseFactor = max(dot(normal, lightDir), 0.0);
-        diffuseFactor = floor(diffuseFactor * 3) / 2; // Разбиение на ступени
+        diffuseFactor = floor(diffuseFactor * consts.ToonShadingSteps) / (consts.ToonShadingSteps - 1); // Разбиение на ступени
         float4 diffuse = diffuseFactor * light.Color * input.col;
 
         // Спекулярная составляющая (Phong)
@@ -98,7 +100,7 @@ float4 PS(PS_IN input) : SV_Target
 
         // Диффузная составляющая (Lambert)
         float diffuseFactor = max(dot(normal, lightDir), 0.0);
-        diffuseFactor = floor(diffuseFactor * 3) / 2; // Разбиение на ступени
+        diffuseFactor = floor(diffuseFactor * consts.ToonShadingSteps) / (consts.ToonShadingSteps - 1); // Разбиение на ступени
         float4 diffuse = diffuseFactor * light.Color * input.col;
 
         // Спекулярная составляющая (Phong)

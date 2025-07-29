@@ -1,7 +1,6 @@
-﻿using LayerSlicer.Forms;
-using LayerSlicer.Lighting.Structs;
+﻿using LayerSlicer.Lighting.Structs;
 using SharpDX.Direct3D11;
-using System;
+using System.Numerics;
 
 namespace LayerSlicer.Lighting
 {
@@ -22,6 +21,10 @@ namespace LayerSlicer.Lighting
         private static bool _isDirty = true;
 
         private static DeviceContext _deviceContext;
+
+        public static int ToonShadingSteps = GlobalConsts.BasicToonShaderSteps;
+
+        public static SharpDX.Vector4 AmbiendLighting = GlobalConsts.BaseAmbiendLight;
 
         public static event EventHandler LightingChanged;
 

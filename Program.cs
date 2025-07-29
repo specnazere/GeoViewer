@@ -67,7 +67,7 @@ namespace LayerSlicer
             // Create Constant Buffer
             var contantBuffer = new Buffer(
                 _device,
-                Utilities.SizeOf<ShaderMatricesInput>() + 12,
+                Utilities.SizeOf<ShaderConstDataInput>() + 8,
                 ResourceUsage.Default,
                 BindFlags.ConstantBuffer,
                 CpuAccessFlags.None,
@@ -188,8 +188,8 @@ namespace LayerSlicer
                 // Update before render
                 GlobalUpdater.Update();
 
-                // Update Matrices
-                var ShaderInput = new ShaderMatricesInput()
+                // Update shader const data
+                var ShaderInput = new ShaderConstDataInput()
                 {
                     WorldViewProj = (GlobalModel.Matrix * GlobalCamera.GetMatrix()),
                     ModelRotationTransformation = GlobalModel.GetRotationMatrix(),
@@ -199,6 +199,8 @@ namespace LayerSlicer
                     CameraPosition = GlobalCamera.Position,
                     PointLights = GlobalLighting.GetActivePointLightsCount(),
                     DirectionalLights = GlobalLighting.GetActiveDirectionalLightsCount(),
+                    ToonShadingSteps = GlobalLighting.ToonShadingSteps,
+                    AmbiendLighting = GlobalLighting.AmbiendLighting,
                 };
                 ShaderInput.WorldViewProj.Transpose();
                 ShaderInput.ModelRotationTransformation.Transpose();

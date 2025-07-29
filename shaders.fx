@@ -10,7 +10,7 @@ struct DirectionalLight
     float4 Color; // RGB + интенсивность
 };
 
-struct ShaderConstsInput
+cbuffer ShaderConstsInput : register(b0)
 {
     float4x4 WorldViewProj;
     float4x4 ModelRotationTransformation;
@@ -23,7 +23,6 @@ struct ShaderConstsInput
     float ToonShadingSteps;
     float4 AmbiendLighting;
 };
-ShaderConstsInput consts;
 
 StructuredBuffer<PointLight> PointLightsBuffer : register(t0);
 StructuredBuffer<DirectionalLight> DirectionalLightsBuffer : register(t1);
@@ -48,10 +47,10 @@ PS_IN VS(VS_IN input)
 {
     PS_IN output = (PS_IN) 0;
 
-    output.pos = mul(input.pos, consts.WorldViewProj);
+    output.pos = mul(input.pos, WorldViewProj);
     output.col = input.col;
-    output.worldPos = mul(input.pos, consts.ModelFullTransformation); // Переводим в мировые координаты
-    output.normal = normalize(mul(input.nor, (float3x3) consts.ModelRotationTransformation)); // Нормаль в мировом пространстве
+    output.worldPos = mul(input.pos, ModelFullTransformation); // Переводим в мировые координаты
+    output.normal = normalize(mul(input.nor, (float3x3) ModelRotationTransformation)); // Нормаль в мировом пространстве
 
     return output;
 }
@@ -64,11 +63,11 @@ float CalculateAttenuation(float distance, float4 attenuation)
 
 float4 PS_Toon(PS_IN input) : SV_Target
 {
-    float3 viewDir = normalize((float3)input.worldPos - consts.CameraPosition);
+    float3 viewDir = normalize((float3)input.worldPos - CameraPosition);
     float3 normal = normalize(input.normal);
-    float4 result = consts.AmbiendLighting * consts.AmbiendLighting.w * input.col; // Амбиентная составляющая
+    float4 result = AmbiendLighting * AmbiendLighting.w * input.col; // Амбиентная составляющая
 
-    for (uint i = 0; i < consts.PointLights; i++)
+    for (uint i = 0; i < PointLights; i++)
     {
         PointLight light = PointLightsBuffer[i];
         float3 lightDir = normalize(light.Position.xyz - input.worldPos.xyz);
@@ -77,7 +76,7 @@ float4 PS_Toon(PS_IN input) : SV_Target
 
         // Диффузная составляющая (дискретизация)
         float diffuseFactor = max(dot(normal, lightDir), 0.0);
-        diffuseFactor = floor(diffuseFactor * consts.ToonShadingSteps) / (consts.ToonShadingSteps - 1); // Разбиение на ступени
+        diffuseFactor = floor(diffuseFactor * ToonShadingSteps) / (ToonShadingSteps - 1); // Разбиение на ступени
         float4 diffuse = diffuseFactor * light.Color * input.col;
 
         // Спекулярная составляющая (Phong)
@@ -90,7 +89,7 @@ float4 PS_Toon(PS_IN input) : SV_Target
         result += (diffuse + specular) * attenuation;
     }
 
-    for (uint i = 0; i < consts.DirectionalLights; i++)
+    for (uint i = 0; i < DirectionalLights; i++)
     {
         DirectionalLight light = DirectionalLightsBuffer[i];
         float3 lightDir;
@@ -100,7 +99,7 @@ float4 PS_Toon(PS_IN input) : SV_Target
 
         // Диффузная составляющая (Lambert)
         float diffuseFactor = max(dot(normal, lightDir), 0.0);
-        diffuseFactor = floor(diffuseFactor * consts.ToonShadingSteps) / (consts.ToonShadingSteps - 1); // Разбиение на ступени
+        diffuseFactor = floor(diffuseFactor * ToonShadingSteps) / (ToonShadingSteps - 1); // Разбиение на ступени
         float4 diffuse = diffuseFactor * light.Color * input.col;
 
         // Спекулярная составляющая (Phong)
@@ -118,11 +117,11 @@ float4 PS_Toon(PS_IN input) : SV_Target
 
 float4 PS_Phong(PS_IN input) : SV_Target
 {
-    float3 viewDir = normalize((float3) input.worldPos - consts.CameraPosition);
+    float3 viewDir = normalize((float3) input.worldPos - CameraPosition);
     float3 normal = normalize(input.normal);
     float4 result = float4(0.1, 0.1, 0.1, 1.0) * input.col; //
 
-    for (uint i = 0; i < consts.PointLights; i++)
+    for (uint i = 0; i < PointLights; i++)
     {
         PointLight light = PointLightsBuffer[i];
         float3 lightDir;
@@ -146,7 +145,7 @@ float4 PS_Phong(PS_IN input) : SV_Target
         result += (diffuse + specular) * attenuation;
     }
 
-    for (uint i = 0; i < consts.DirectionalLights; i++)
+    for (uint i = 0; i < DirectionalLights; i++)
     {
         DirectionalLight light = DirectionalLightsBuffer[i];
         float3 lightDir;

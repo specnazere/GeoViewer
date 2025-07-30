@@ -1,5 +1,6 @@
 ﻿using LayerSlicer.Lighting;
 using LayerSlicer.Lighting.Structs;
+using SharpDX.DirectInput;
 
 namespace LayerSlicer.Forms
 {
@@ -679,6 +680,21 @@ namespace LayerSlicer.Forms
                             Font = GlobalConsts.BasicFont,
                             Text = "New point light name",
                             Dock = DockStyle.None,
+                        };
+                        LightName.GotFocus += (s, e) =>
+                        {
+                            UserEventRouter.IsTexting = true;
+                        };
+                        LightName.LostFocus += (s, e) =>
+                        {
+                            UserEventRouter.IsTexting = false;
+                        };
+                        LightName.KeyUp += (s, e) =>
+                        {
+                            if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Escape)
+                            {
+                                MainWindow.GetRenderForm().ActiveControl = null;
+                            }
                         };
                         PointLightsCreationPanel.Add(LightName);
 

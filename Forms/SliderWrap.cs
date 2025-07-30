@@ -138,6 +138,22 @@ namespace LayerSlicer.Forms
                 isUpdating = false;
             };
 
+            HandInput.GotFocus += (s, e) =>
+            {
+                UserEventRouter.IsTexting = true;
+            };
+            HandInput.LostFocus += (s, e) =>
+            {
+                UserEventRouter.IsTexting = false;
+            };
+            HandInput.KeyUp += (s, e) =>
+            {
+                if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Escape)
+                {
+                    MainWindow.GetRenderForm().ActiveControl = null;
+                }
+            };
+
             ResetButton.Click += (s, e) => Slider.Reset();
             SizeChanged += (s, e) => OnSizeChanged();
 

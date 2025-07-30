@@ -116,18 +116,24 @@ namespace LayerSlicer.Lighting
             if (!find) 
                 return false;
 
-            if (index < 0 || index >= _activePointLightsCount)
-                return false;
-
             // Сдвигаем все элементы после удаляемого
-            for (int i = index; i < _activePointLightsCount - 1; i++)
+            for (int i = index; i < _activePointLightsCount; i++)
             {
                 _pointLightObjects[i] = _pointLightObjects[i + 1];
 
                 (var pointLightIndex, var name) = _pointHandlersConnection[i];
-                if (pointLightIndex > index)
+                if (pointLightIndex >= index)
                 {
-                    _pointHandlersConnection[i] = _pointHandlersConnection[i + 1];
+                    if (i != _activePointLightsCount - 1)
+                    {
+                        _pointHandlersConnection[i] =  (
+                            _pointHandlersConnection[i + 1].Item1 - 1, 
+                            _pointHandlersConnection[i + 1].Item2);
+                    }
+                    else
+                    {
+                        _pointHandlersConnection.Remove(_pointHandlersConnection[i]);
+                    }
                 }
             }
 
@@ -154,18 +160,24 @@ namespace LayerSlicer.Lighting
             if (!find)
                 return false;
 
-            if (index < 0 || index >= _activeDirectionalLightsCount)
-                return false;
-
             // Сдвигаем все элементы после удаляемого
-            for (int i = index; i < _activeDirectionalLightsCount - 1; i++)
+            for (int i = index; i < _activeDirectionalLightsCount; i++)
             {
                 _directionalLightObjects[i] = _directionalLightObjects[i + 1];
 
                 (var directionalLightIndex, var name) = _directionalHandlersConnection[i];
-                if (directionalLightIndex > index)
+                if (directionalLightIndex >= index)
                 {
-                    _directionalHandlersConnection[i] = _directionalHandlersConnection[i + 1];
+                    if (i != _activeDirectionalLightsCount - 1)
+                    {
+                        _directionalHandlersConnection[i] = (
+                            _directionalHandlersConnection[i + 1].Item1 - 1,
+                            _directionalHandlersConnection[i + 1].Item2);
+                    }
+                    else
+                    {
+                        _directionalHandlersConnection.Remove(_directionalHandlersConnection[i]);
+                    }
                 }
             }
 

@@ -92,12 +92,17 @@ namespace LayerSlicer.Forms
                     var ControlInfoLabel = new SelfStretchingLabel();
                     SetupLabel(ControlInfoLabel);
                     ControlInfoLabel.Text =
-                        "\"F\" для переключения между режимами управления" + 
+                        "\"F\" для переключения между режимами управления" +
                         Environment.NewLine +
                         "\"R\" для восстановления изначального состояния сцены " +
                             "(положение, поворот и поле зрения камеры, положение, " +
-                            "поворот и масштаб модели)";
-                    HotkeysInfoPanel.Add(ControlInfoLabel);
+                            "поворот и масштаб модели)" +
+                        Environment.NewLine +
+                        "\"ESC\" для завершения работы программы " +
+                        Environment.NewLine +
+                        "\"ESC/ENTER\" при наборе значений в текстовые поля " +
+                            "для завершения редактирования ";
+                HotkeysInfoPanel.Add(ControlInfoLabel);
                 }
 
                 var StretchInfoPanel = new CollapsiblePanel("Растягивание панели");
@@ -756,14 +761,14 @@ namespace LayerSlicer.Forms
                         {
                             SetupLabel(PositionControlLabel);
                             PositionControlLabel.Text =
-                                "Слайдеры для размещения вдоль осей X, Y и Z соотвественно";
+                                "Слайдеры для управление вектором направления по осям X, Y и Z соотвественно";
                         }
 
                         var DirectionControlSliders = new SliderGroup()
                         {
                             SetReset = 0,
-                            Minimum = -50,
-                            Maximum = 50,
+                            Minimum = -5,
+                            Maximum = 5 ,
                             Height = 200,
                         };
                         DirectionalLightsCreationPanel.Add(DirectionControlSliders);
@@ -863,6 +868,21 @@ namespace LayerSlicer.Forms
                             Font = GlobalConsts.BasicFont,
                             Text = "New directional light name",
                             Dock = DockStyle.None,
+                        };
+                        LightName.GotFocus += (s, e) =>
+                        {
+                            UserEventRouter.IsTexting = true;
+                        };
+                        LightName.LostFocus += (s, e) =>
+                        {
+                            UserEventRouter.IsTexting = false;
+                        };
+                        LightName.KeyUp += (s, e) =>
+                        {
+                            if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Escape)
+                            {
+                                MainWindow.GetRenderForm().ActiveControl = null;
+                            }
                         };
                         DirectionalLightsCreationPanel.Add(LightName);
 
@@ -1667,7 +1687,7 @@ namespace LayerSlicer.Forms
             {
                 SetReset = newDirectionalLight.Color.W,
                 Minimum = 0,
-                Maximum = 1000,
+                Maximum = 10,
                 IsVerticalLayout = false,
             };
             directionalLightAccessPanel.Add(IntencyControlSlider);

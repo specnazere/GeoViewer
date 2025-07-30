@@ -974,6 +974,7 @@ namespace LayerSlicer.Forms
                     {
                         ShaderSelectComboBox.Items.Add("Мультяшный вид");
                         ShaderSelectComboBox.Items.Add("Стандартный вид");
+                        ShaderSelectComboBox.Items.Add("Строгий вид");
                         ShaderSelectComboBox.Items.Add("Вид сетки");
                         ShaderSelectComboBox.SelectedIndex = 0;
 
@@ -988,6 +989,9 @@ namespace LayerSlicer.Forms
                                     GlobalShaders.SelectPhong();
                                     break;
                                 case 2:
+                                    GlobalShaders.SelectStrict();
+                                    break;
+                                case 3:
                                     GlobalShaders.SelectMesh();
                                     break;
                             }
@@ -1022,6 +1026,298 @@ namespace LayerSlicer.Forms
                                 BufferSteps = GlobalLighting.ToonShadingSteps;
                                 BufferSteps = (int)IntencyControlSlider.Value;
                                 GlobalLighting.ToonShadingSteps = BufferSteps;
+                            };
+                        }
+                    }
+                }
+
+                var ColorControlPanel = new CollapsiblePanel("Настройки цвета");
+                DisplayControlPanel.Add(ColorControlPanel);
+                {
+                    var FrontControlPanel = new CollapsiblePanel("Передняя сторона");
+                    ColorControlPanel.Add(FrontControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        FrontControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        FrontControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.FrontColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.FrontColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.FrontColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.FrontColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.FrontColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.FrontColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.FrontColor = bufferColor;
+                            };
+                        }
+                    }
+
+                    var BackControlPanel = new CollapsiblePanel("Задняя сторона");
+                    ColorControlPanel.Add(BackControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        BackControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        BackControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.BackColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BackColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.BackColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BackColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.BackColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BackColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.BackColor = bufferColor;
+                            };
+                        }
+                    }
+
+                    var TopControlPanel = new CollapsiblePanel("Верхняя сторона");
+                    ColorControlPanel.Add(TopControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        TopControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        TopControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.TopColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.TopColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.TopColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.TopColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.TopColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.TopColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.TopColor = bufferColor;
+                            };
+                        }
+                    }
+
+                    var BottomControlPanel = new CollapsiblePanel("Нижняя сторона");
+                    ColorControlPanel.Add(BottomControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        BottomControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        BottomControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.BottomColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BottomColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.BottomColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BottomColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.BottomColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BottomColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.BottomColor = bufferColor;
+                            };
+                        }
+                    }
+
+                    var LeftControlPanel = new CollapsiblePanel("Левая сторона");
+                    ColorControlPanel.Add(LeftControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        LeftControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        LeftControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.LeftColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.LeftColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.LeftColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.LeftColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.LeftColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.LeftColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.LeftColor = bufferColor;
+                            };
+                        }
+                    }
+
+                    var RightControlPanel = new CollapsiblePanel("Правая сторона");
+                    ColorControlPanel.Add(RightControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        RightControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        RightControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.RightColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.RightColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.RightColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.RightColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.RightColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.RightColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.RightColor = bufferColor;
                             };
                         }
                     }

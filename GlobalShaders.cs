@@ -55,7 +55,7 @@ namespace LayerSlicer
         private static PixelShader _phongShader;
         private static PixelShader _meshShader;
 
-        private static GlobalConsts.selectedShader _selectedShader;
+        private static selectedShader _selectedShader;
 
         private static VertexBufferBinding[] _bufferBindings;
 
@@ -86,9 +86,9 @@ namespace LayerSlicer
             // Layout from VertexShader input signature
             var layout = new InputLayout(_device, signature, new[]
                     {
-                        new InputElement("POSITION", 0, Format.R32G32B32A32_Float, GlobalConsts.Float4BytesSize * 0, 0),
-                        new InputElement("COLOR", 0, Format.R32G32B32A32_Float, GlobalConsts.Float4BytesSize * 1, 0),
-                        new InputElement("NORMAL", 0, Format.R32G32B32A32_Float, GlobalConsts.Float4BytesSize * 2, 0)
+                        new InputElement("POSITION", 0, Format.R32G32B32A32_Float, Float4BytesSize * 0, 0),
+                        new InputElement("COLOR", 0, Format.R32G32B32A32_Float, Float4BytesSize * 1, 0),
+                        new InputElement("NORMAL", 0, Format.R32G32B32A32_Float, Float4BytesSize * 2, 0)
                     });
 
             // Create Constant Buffer
@@ -112,8 +112,8 @@ namespace LayerSlicer
             //
             _bufferBindings = new[]
             {
-                new VertexBufferBinding(GlobalModel.VerticesByTrianglesBuffer, Utilities.SizeOf<Vector4>() * 3, 0),
-                new VertexBufferBinding(GlobalModel.VerticesByLinesBuffer, Utilities.SizeOf<Vector4>() * 3, 0),
+                new VertexBufferBinding(GlobalModel.VerticesByTrianglesBuffer, Utilities.SizeOf<Vector4>() * PerVertexVectors, 0),
+                new VertexBufferBinding(GlobalModel.VerticesByLinesBuffer, Utilities.SizeOf<Vector4>() * PerVertexVectors, 0),
             };
 
             // Prepare All the stages
@@ -139,6 +139,14 @@ namespace LayerSlicer
             _deviceContext.PixelShader.Set(_phongShader);
         }
 
+        public static void SelectStrict()
+        {
+            _selectedShader = selectedShader.Mesh;
+            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+            _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]);
+            _deviceContext.PixelShader.Set(_meshShader);
+        }
+
         public static void SelectMesh()
         {
             _selectedShader = selectedShader.Mesh;
@@ -161,7 +169,7 @@ namespace LayerSlicer
 
             switch (_selectedShader)
             {
-            case GlobalConsts.selectedShader.Toon:
+            case selectedShader.Toon:
                 var toonShaderInput = new ToonShaderInput()
                 {
                     AmbiendLighting = GlobalLighting.AmbiendLighting,
@@ -176,7 +184,7 @@ namespace LayerSlicer
                 _deviceContext.UpdateSubresource(ref toonShaderInput, _pixelConstsBuffer);
                 break;
 
-            case GlobalConsts.selectedShader.Phong:
+            case selectedShader.Phong:
                 var phongShaderInput = new PhongShaderInput()
                 {
                     AmbiendLighting = GlobalLighting.AmbiendLighting,

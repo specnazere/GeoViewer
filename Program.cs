@@ -22,7 +22,7 @@ namespace LayerSlicer
         private static void Main()
         {
             // SwapChain description
-            var desc = new SwapChainDescription()
+            var SWdesc = new SwapChainDescription()
             {
                 BufferCount = 1,
                 ModeDescription =
@@ -39,11 +39,25 @@ namespace LayerSlicer
             };
 
             // Create Device and SwapChain
-            Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.None, desc, out _device, out _swapChain);
+            Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.None, SWdesc, out _device, out _swapChain);
             var context = _device.ImmediateContext;
 
-            GlobalModel.VerticesByTrianglesBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalConsts.CubeVerticesByTriangles);
-            GlobalModel.VerticesByLinesBuffer =     Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalConsts.CubeVerticesByLines);
+            var bufferDesc = new BufferDescription
+            {
+                SizeInBytes = GlobalConsts.PerSideVectors * Utilities.SizeOf<Vector4>() * 6, // Размер в байтах
+                Usage = ResourceUsage.Dynamic,  // Динамический буфер
+                BindFlags = BindFlags.VertexBuffer,
+                CpuAccessFlags = CpuAccessFlags.Write, // Разрешить запись с CPU
+                OptionFlags = ResourceOptionFlags.None,
+                StructureByteStride = 0
+            };
+
+            GlobalModel.VerticesByTrianglesBuffer = new Buffer(
+                GetDevice(),
+                DataStream.Create(GlobalModel.CubeVerticesByTriangles, false, false),
+                bufferDesc
+            );
+            GlobalModel.VerticesByLinesBuffer =     Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalModel.CubeVerticesByLines);
 
             // Ignore all windows events
             var factory = _swapChain.GetParent<Factory>();
@@ -106,7 +120,7 @@ namespace LayerSlicer
 
                     // Resize the backbuffer
                     _swapChain.ResizeBuffers(
-                        desc.BufferCount, 
+                        SWdesc.BufferCount, 
                         MainWindow.GetRenderForm().ClientSize.Width, 
                         MainWindow.GetRenderForm().ClientSize.Height, 
                         Format.Unknown, SwapChainFlags.None);

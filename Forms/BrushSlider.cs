@@ -76,10 +76,10 @@ namespace LayerSlicer.Forms
                     {
                         _value = value;
                     }
-                    _fillValue = (_value - _min) / (_max - _min);
                     ValueChanged?.Invoke(this, EventArgs.Empty);
-                    Invalidate();
                 }
+                _fillValue = (_value - _min) / (_max - _min);
+                Invalidate();
             }
         }
 

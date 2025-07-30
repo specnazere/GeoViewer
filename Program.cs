@@ -156,26 +156,6 @@ namespace LayerSlicer
                 // Update before render
                 GlobalUpdater.Update();
 
-                // Update shader const data
-                var ShaderInput = new ShaderConstDataInput()
-                {
-                    WorldViewProj = (GlobalModel.Matrix * GlobalCamera.GetMatrix()),
-                    ModelRotationTransformation = GlobalModel.GetRotationMatrix(),
-                    ModelFullTransformation = GlobalModel.Matrix,
-                    CameraRotationTransformation = GlobalCamera.GetRotationMatrix(),
-                    ProjectionTransformation = GlobalCamera.GetProjMatrix(),
-                    CameraPosition = GlobalCamera.Position,
-                    PointLights = GlobalLighting.GetActivePointLightsCount(),
-                    DirectionalLights = GlobalLighting.GetActiveDirectionalLightsCount(),
-                    ToonShadingSteps = GlobalLighting.ToonShadingSteps,
-                    AmbiendLighting = GlobalLighting.AmbiendLighting,
-                };
-                ShaderInput.WorldViewProj.Transpose();
-                ShaderInput.ModelRotationTransformation.Transpose();
-                ShaderInput.CameraRotationTransformation.Transpose();
-                ShaderInput.ProjectionTransformation.Transpose();
-                context.UpdateSubresource(ref ShaderInput, GlobalShaders.GetBuffer());
-
                 // Draw the cube
                 context.Draw(54, 0);
 

@@ -893,6 +893,9 @@ namespace LayerSlicer.Forms
                         Maximum = 256,
                         Height = 200,
                     };
+                    ColorControlSliders.SliderWraps[0].SetReset = GlobalLighting.AmbiendLighting.X * 256;
+                    ColorControlSliders.SliderWraps[1].SetReset = GlobalLighting.AmbiendLighting.Y * 256;
+                    ColorControlSliders.SliderWraps[2].SetReset = GlobalLighting.AmbiendLighting.Z * 256;
                     AmbiendLightControlPanel.Add(ColorControlSliders);
                     ColorControlSliders.Reset();
                     {
@@ -933,6 +936,7 @@ namespace LayerSlicer.Forms
                         Maximum = 10,
                         IsVerticalLayout = false,
                     };
+                    IntencyControlSlider.SetReset = GlobalLighting.AmbiendLighting.W;
                     AmbiendLightControlPanel.Add(IntencyControlSlider);
                     IntencyControlSlider.Reset();
                     {
@@ -945,10 +949,15 @@ namespace LayerSlicer.Forms
                         };
                     }
                 }
+            }
 
-                var ShaderControlPanel = new CollapsiblePanel("Управление отрисовкой");
-                LightingControlPanel.Add(ShaderControlPanel);
+            var DisplayControlPanel = new CollapsiblePanel("Управление отображением");
+            Add(DisplayControlPanel);
+            {
+                var ShaderControlPanel = new CollapsiblePanel("Настройки отрисовки");
+                DisplayControlPanel.Add(ShaderControlPanel);
                 {
+
                     var ShaderSelectLabel = new SelfStretchingLabel();
                     ShaderControlPanel.Add(ShaderSelectLabel);
                     {
@@ -956,7 +965,7 @@ namespace LayerSlicer.Forms
                         ShaderSelectLabel.Text =
                             "Выбор типа отрисовки";
                     }
-                    var ShaderSelectComboBox = new ComboBox() 
+                    var ShaderSelectComboBox = new ComboBox()
                     {
                         Font = GlobalConsts.BasicFont,
                         FlatStyle = FlatStyle.Flat,
@@ -972,15 +981,15 @@ namespace LayerSlicer.Forms
                         {
                             switch (ShaderSelectComboBox.SelectedIndex)
                             {
-                            case 0:
-                                GlobalShaders.SelectToon();
-                                break;
-                            case 1:
-                                GlobalShaders.SelectPhong();
-                                break;
-                            case 2:
-                                GlobalShaders.SelectMesh();
-                                break;
+                                case 0:
+                                    GlobalShaders.SelectToon();
+                                    break;
+                                case 1:
+                                    GlobalShaders.SelectPhong();
+                                    break;
+                                case 2:
+                                    GlobalShaders.SelectMesh();
+                                    break;
                             }
                         };
                     }
@@ -1015,6 +1024,91 @@ namespace LayerSlicer.Forms
                                 GlobalLighting.ToonShadingSteps = BufferSteps;
                             };
                         }
+                    }
+                }
+
+                var MaterialControlPanel = new CollapsiblePanel("Настройки материала");
+                DisplayControlPanel.Add(MaterialControlPanel);
+                {
+                    var DiffusalControlLabel = new SelfStretchingLabel();
+                    MaterialControlPanel.Add(DiffusalControlLabel);
+                    {
+                        SetupLabel(DiffusalControlLabel);
+                        DiffusalControlLabel.Text =
+                            "Сила рассеянного света";
+                    }
+
+                    var DiffusalControlSlider = new SliderWrap()
+                    {
+                        SetReset = GlobalShaders.DiffusalComponent,
+                        Minimum = 0,
+                        Maximum = 5,
+                        IsVerticalLayout = false,
+                    };
+                    MaterialControlPanel.Add(DiffusalControlSlider);
+                    DiffusalControlSlider.Reset();
+                    {
+                        float bufferDiffusal = GlobalShaders.DiffusalComponent;
+                        DiffusalControlSlider.ValueChanged += (sender, e) =>
+                        {
+                            bufferDiffusal = GlobalShaders.DiffusalComponent;
+                            bufferDiffusal = DiffusalControlSlider.Value;
+                            GlobalShaders.DiffusalComponent = bufferDiffusal;
+                        };
+                    }
+
+                    var SpecularControlLabel = new SelfStretchingLabel();
+                    MaterialControlPanel.Add(SpecularControlLabel);
+                    {
+                        SetupLabel(SpecularControlLabel);
+                        SpecularControlLabel.Text =
+                            "Сила отражённого света";
+                    }
+
+                    var SpecularControlSlider = new SliderWrap()
+                    {
+                        SetReset = GlobalShaders.SpecularComponent,
+                        Minimum = 0,
+                        Maximum = 5,
+                        IsVerticalLayout = false,
+                    };
+                    MaterialControlPanel.Add(SpecularControlSlider);
+                    SpecularControlSlider.Reset();
+                    {
+                        float bufferSpecular = GlobalShaders.SpecularComponent;
+                        SpecularControlSlider.ValueChanged += (sender, e) =>
+                        {
+                            bufferSpecular = GlobalShaders.SpecularComponent;
+                            bufferSpecular = SpecularControlSlider.Value;
+                            GlobalShaders.SpecularComponent = bufferSpecular;
+                        };
+                    }
+
+                    var SpecularDispersionControlLabel = new SelfStretchingLabel();
+                    MaterialControlPanel.Add(SpecularDispersionControlLabel);
+                    {
+                        SetupLabel(SpecularDispersionControlLabel);
+                        SpecularDispersionControlLabel.Text =
+                            "Степень размера блика";
+                    }
+
+                    var SpecularDispersionControlSlider = new SliderWrap()
+                    {
+                        SetReset = 5 - GlobalShaders.SpecularDispersion,
+                        Minimum = 0,
+                        Maximum = 5,
+                        IsVerticalLayout = false,
+                    };
+                    MaterialControlPanel.Add(SpecularDispersionControlSlider);
+                    SpecularDispersionControlSlider.Reset();
+                    {
+                        float bufferDispersion = GlobalShaders.SpecularDispersion;
+                        SpecularDispersionControlSlider.ValueChanged += (sender, e) =>
+                        {
+                            bufferDispersion = GlobalShaders.SpecularDispersion;
+                            bufferDispersion = 5 - SpecularDispersionControlSlider.Value;
+                            GlobalShaders.SpecularDispersion = bufferDispersion;
+                        };
                     }
                 }
             }

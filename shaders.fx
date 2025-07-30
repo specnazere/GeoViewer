@@ -22,6 +22,9 @@ cbuffer ShaderConstsInput : register(b0)
     uint DirectionalLights;
     float ToonShadingSteps;
     float4 AmbiendLighting;
+    float DiffusalComponent;
+    float SpecularComponent;
+    float SpecularDispersion;
 };
 
 StructuredBuffer<PointLight> PointLightsBuffer : register(t0);
@@ -55,15 +58,9 @@ PS_IN VS(VS_IN input)
     return output;
 }
 
-// Функция для вычисления затухания света
-float CalculateAttenuation(float distance, float4 attenuation)
-{
-    return 1.0 / (attenuation.x + attenuation.y * distance + attenuation.z * distance * distance);
-}
-
 float4 PS_Toon(PS_IN input) : SV_Target
 {
-    float3 viewDir = normalize((float3)input.worldPos - CameraPosition);
+    float3 viewDir = normalize((float3) input.worldPos - CameraPosition);
     float3 normal = normalize(input.normal);
     float4 result = AmbiendLighting * AmbiendLighting.w * input.col; // Амбиентная составляющая
 
@@ -119,7 +116,7 @@ float4 PS_Phong(PS_IN input) : SV_Target
 {
     float3 viewDir = normalize((float3) input.worldPos - CameraPosition);
     float3 normal = normalize(input.normal);
-    float4 result = float4(0.1, 0.1, 0.1, 1.0) * input.col; //
+    float4 result = AmbiendLighting * AmbiendLighting.w * input.col; //
 
     for (uint i = 0; i < PointLights; i++)
     {
@@ -142,7 +139,7 @@ float4 PS_Phong(PS_IN input) : SV_Target
         float4 specular = specularFactor * light.Color;
 
         //
-        result += (diffuse + specular) * attenuation;
+        result += (diffuse * DiffusalComponent + specular * SpecularComponent) * attenuation;
     }
 
     for (uint i = 0; i < DirectionalLights; i++)
@@ -163,7 +160,7 @@ float4 PS_Phong(PS_IN input) : SV_Target
         float4 specular = specularFactor * light.Color;
 
         //
-        result += (diffuse + specular) * attenuation;
+        result += (diffuse * DiffusalComponent + specular * SpecularComponent) * attenuation;
     }
 
     return result;

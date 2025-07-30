@@ -42,6 +42,8 @@ namespace LayerSlicer
                 }
             }
 
+            GlobalShaders.UpdateBuffers();
+
             // Finalising
             _last += dt;
         }

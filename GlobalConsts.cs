@@ -1,4 +1,5 @@
 ﻿using SharpDX;
+using System.Runtime.InteropServices;
 
 namespace LayerSlicer
 {
@@ -193,8 +194,14 @@ namespace LayerSlicer
         public static readonly Vector4 BaseAmbiendLight = new(0.2f, 0.2f, 0.2f, 1);
 
         public const int BasicToonShaderSteps = 8;
+
+        public enum selectedShader
+        {
+            Toon, Phong, Mesh
+        }
     }
 
+    [StructLayout(LayoutKind.Sequential)]
     internal struct ShaderConstDataInput()
     {
         public Matrix WorldViewProj;
@@ -207,5 +214,8 @@ namespace LayerSlicer
         public uint DirectionalLights;
         public float ToonShadingSteps;
         public Vector4 AmbiendLighting;
+        public float DiffusalComponent;
+        public float SpecularComponent;
+        public float SpecularDispersion;
     }
 }

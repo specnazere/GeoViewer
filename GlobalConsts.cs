@@ -40,7 +40,7 @@ namespace LayerSlicer
 
         public const int ScrollingSensitivity = -15; // Negative to invert direction
 
-        public static readonly Vector3 StandartCameraPostion = new(0, 0, -5);
+        public static readonly Vector3 StandartCameraPostion = new(0, 0, -5000);
 
         // Crutch to remove
         public static readonly Vector2 Windows10MainFormPosition = new(8f, 31f);
@@ -58,30 +58,11 @@ namespace LayerSlicer
         public const int PerTriangleVertices = 3;
         public const int PerSideTriangles = 2;
         public const int PerSideVectors = PerVertexVectors * PerTriangleVertices * PerSideTriangles;
-
         public const int VertexColorOffset = 1;
 
         public enum selectedShader
         {
             Toon, Phong, Mesh
         }
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct ShaderConstDataInput()
-    {
-        public Matrix WorldViewProj;
-        public Matrix ModelRotationTransformation;
-        public Matrix ModelFullTransformation;
-        public Matrix CameraRotationTransformation;
-        public Matrix ProjectionTransformation;
-        public Vector3 CameraPosition;
-        public uint PointLights;
-        public uint DirectionalLights;
-        public float ToonShadingSteps;
-        public Vector4 AmbiendLighting;
-        public float DiffusalComponent;
-        public float SpecularComponent;
-        public float SpecularDispersion;
     }
 }

@@ -95,7 +95,7 @@ namespace LayerSlicer
                     Matrix.RotationZ(_rotation.Z), 
                 Matrix.PerspectiveFovLH(_fov, 
                     Program.GetRenderSize().Width / 
-                    (float)Program.GetRenderSize().Height, 0.1f, 100.0f));
+                    (float)Program.GetRenderSize().Height, 0.1f, 100000.0f));
         }
 
         public static Matrix GetRotationMatrix()
@@ -109,7 +109,7 @@ namespace LayerSlicer
         {
             return Matrix.PerspectiveFovLH(_fov,
                 Program.GetRenderSize().Width /
-                (float)Program.GetRenderSize().Height, 0.1f, 100.0f);
+                (float)Program.GetRenderSize().Height, 0.1f, 100000.0f);
         }
 
         internal static void GlobalShift(float X, float Y, float Z)

@@ -64,8 +64,10 @@ namespace LayerSlicer
             factory.MakeWindowAssociation(MainWindow.GetRenderForm().Handle, WindowAssociationFlags.IgnoreAll);
 
             GlobalShaders.SelectToon();
+            GlobalGrid.ReadFile("grid.bin");
 
             MainWindow.InitInteractForm();
+
 
             var startingPointLight1 = new Lighting.Structs.PointLightObject()
             {
@@ -170,8 +172,18 @@ namespace LayerSlicer
                 // Update before render
                 GlobalUpdater.Update();
 
-                // Draw the cube
-                context.Draw(54, 0);
+                // Draw the cubes
+                for (int x = 0, i = 0; x < GlobalGrid.SizesXYZ[0]; x += 1)
+                {
+                    for (int y = 0; y < GlobalGrid.SizesXYZ[1]; y += 1)
+                    {
+                        for (int z = 0; z < GlobalGrid.SizesXYZ[2]; z += 1)
+                        {
+                            GlobalShaders.UpdateSubPosition(GlobalGrid.GridRenderMatrices[x,y,z]);
+                            context.Draw(54, 0);
+                        }
+                    }
+                }
 
                 // Present!
                 _swapChain.Present(0, PresentFlags.None);

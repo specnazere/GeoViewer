@@ -55,6 +55,8 @@ namespace LayerSlicer
         private static PixelShader _phongShader;
         private static PixelShader _meshShader;
 
+        private static VertexShaderInput _lastVSInput;
+
         private static selectedShader _selectedShader;
 
         private static VertexBufferBinding[] _bufferBindings;
@@ -157,15 +159,15 @@ namespace LayerSlicer
 
         public static void UpdateBuffers()
         {
-            var ShaderInput = new VertexShaderInput()
+            var _lastVSInput = new VertexShaderInput()
             {
                 WorldViewProj = (GlobalModel.Matrix * GlobalCamera.GetMatrix()),
                 ModelRotationTransformation = GlobalModel.GetRotationMatrix(),
                 ModelFullTransformation = GlobalModel.Matrix,
             };
-            ShaderInput.WorldViewProj.Transpose();
-            ShaderInput.ModelRotationTransformation.Transpose();
-            _deviceContext.UpdateSubresource(ref ShaderInput, _vertexConstsBuffer);
+            _lastVSInput.WorldViewProj.Transpose();
+            _lastVSInput.ModelRotationTransformation.Transpose();
+            _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
 
             switch (_selectedShader)
             {
@@ -201,6 +203,16 @@ namespace LayerSlicer
             default:
                 break;
             }
+        }
+
+        public static void UpdateSubPosition(Matrix subTransformationMatrix)
+        {
+            _lastVSInput.WorldViewProj = (GlobalModel.Matrix * subTransformationMatrix * GlobalCamera.GetMatrix());
+            _lastVSInput.WorldViewProj.Transpose();
+            _lastVSInput.ModelFullTransformation = GlobalModel.Matrix * subTransformationMatrix;
+            _lastVSInput.ModelFullTransformation.Transpose();
+
+            _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
         }
     }
 }

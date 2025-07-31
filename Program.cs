@@ -3,6 +3,7 @@ using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
+using SharpDX.DirectInput;
 using SharpDX.DXGI;
 using SharpDX.Windows;
 
@@ -21,6 +22,9 @@ namespace LayerSlicer
         //      [STAThread]
         private static void Main()
         {
+            var format = Format.R8G8B8A8_UNorm;
+            var sampledesc = new SampleDescription(4, 0);
+
             // SwapChain description
             var SWdesc = new SwapChainDescription()
             {
@@ -29,15 +33,14 @@ namespace LayerSlicer
                     new ModeDescription(
                         MainWindow.GetRenderForm().ClientSize.Width, 
                         MainWindow.GetRenderForm().ClientSize.Height,
-                        new Rational(60, 1), 
-                        Format.R8G8B8A8_UNorm),
+                        new Rational(60, 1),
+                        format),
                 IsWindowed = true,
                 OutputHandle = MainWindow.GetRenderForm().Handle,
-                SampleDescription = new SampleDescription(1, 0),
+                SampleDescription = sampledesc,
                 SwapEffect = SwapEffect.Discard,
                 Usage = Usage.RenderTargetOutput,
             };
-
             // Create Device and SwapChain
             Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.None, SWdesc, out _device, out _swapChain);
             var context = _device.ImmediateContext;
@@ -141,7 +144,7 @@ namespace LayerSlicer
                         MipLevels = 1,
                         Width = MainWindow.GetRenderForm().ClientSize.Width,
                         Height = MainWindow.GetRenderForm().ClientSize.Height,
-                        SampleDescription = new SampleDescription(1, 0),
+                        SampleDescription = sampledesc,
                         Usage = ResourceUsage.Default,
                         BindFlags = BindFlags.DepthStencil,
                         CpuAccessFlags = CpuAccessFlags.None,

@@ -207,9 +207,9 @@ namespace LayerSlicer
 
         public static void UpdateSubPosition(Matrix subTransformationMatrix)
         {
-            _lastVSInput.WorldViewProj = (GlobalModel.Matrix * subTransformationMatrix * GlobalCamera.GetMatrix());
+            _lastVSInput.WorldViewProj = (subTransformationMatrix * GlobalModel.Matrix * GlobalCamera.GetMatrix());
             _lastVSInput.WorldViewProj.Transpose();
-            _lastVSInput.ModelFullTransformation = GlobalModel.Matrix * subTransformationMatrix;
+            _lastVSInput.ModelFullTransformation = subTransformationMatrix * GlobalModel.Matrix;
             _lastVSInput.ModelFullTransformation.Transpose();
 
             _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);

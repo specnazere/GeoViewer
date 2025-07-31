@@ -13,6 +13,8 @@ namespace LayerSlicer.Forms
         private CollapsiblePanel _pointLightsContainer;
         private CollapsiblePanel _directionalLightsContainer;
 
+        private ComboBox _propertyComboBox;
+
         private ScrollBar _scrollBar;
 
         protected int _innerWidth;
@@ -993,7 +995,6 @@ namespace LayerSlicer.Forms
                 var ShaderControlPanel = new CollapsiblePanel("Настройки отрисовки");
                 DisplayControlPanel.Add(ShaderControlPanel);
                 {
-
                     var ShaderSelectLabel = new SelfStretchingLabel();
                     ShaderControlPanel.Add(ShaderSelectLabel);
                     {
@@ -1011,6 +1012,7 @@ namespace LayerSlicer.Forms
                         ShaderSelectComboBox.Items.Add("Мультяшный вид");
                         ShaderSelectComboBox.Items.Add("Стандартный вид");
                         ShaderSelectComboBox.Items.Add("Строгий вид");
+                        ShaderSelectComboBox.Items.Add("Вид свойств");
                         ShaderSelectComboBox.Items.Add("Вид сетки");
                         ShaderSelectComboBox.SelectedIndex = 0;
 
@@ -1028,6 +1030,9 @@ namespace LayerSlicer.Forms
                                     GlobalShaders.SelectStrict();
                                     break;
                                 case 3:
+                                    GlobalShaders.SelectOverlap();
+                                    break;
+                                case 4:
                                     GlobalShaders.SelectMesh();
                                     break;
                             }
@@ -1062,6 +1067,30 @@ namespace LayerSlicer.Forms
                                 BufferSteps = GlobalLighting.ToonShadingSteps;
                                 BufferSteps = (int)IntencyControlSlider.Value;
                                 GlobalLighting.ToonShadingSteps = BufferSteps;
+                            };
+                        }
+                    }
+
+                    var PropertyShadingControlPanel = new CollapsiblePanel("Настройки вида свойств");
+                    ShaderControlPanel.Add(PropertyShadingControlPanel);
+                    {
+                        var PropertySelectLabel = new SelfStretchingLabel();
+                        PropertyShadingControlPanel.Add(PropertySelectLabel);
+                        {
+                            SetupLabel(ShaderSelectLabel);
+                            ShaderSelectLabel.Text =
+                                "Выбор визуализируемого свойства";
+                        }
+                        _propertyComboBox = new ComboBox()
+                        {
+                            Font = GlobalConsts.BasicFont,
+                            FlatStyle = FlatStyle.Flat,
+                        };
+                        PropertyShadingControlPanel.Add(_propertyComboBox);
+                        {
+                            _propertyComboBox.SelectedIndexChanged += (sender, e) =>
+                            {
+                                GlobalGrid.SelectedProperty = _propertyComboBox.Text;
                             };
                         }
                     }
@@ -1719,6 +1748,15 @@ namespace LayerSlicer.Forms
                 _directionalLightsContainer.Remove(directionalLightAccessPanel);
                 GlobalLighting.RemoveDirectionalLight(name);
             };
+        }
+
+        public void ConnectGridProperty(string name)
+        {
+            _propertyComboBox.Items.Add(name);
+            if (_propertyComboBox.Items.Count == 1)
+            {
+                _propertyComboBox.SelectedIndex = 0;
+            }
         }
 
         protected override void OnPaint(PaintEventArgs e)

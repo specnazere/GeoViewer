@@ -60,17 +60,16 @@ namespace LayerSlicer
                 DataStream.Create(GlobalModel.CubeVerticesByTriangles, false, false),
                 bufferDesc
             );
-            GlobalModel.VerticesByLinesBuffer =     Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalModel.CubeVerticesByLines);
+            GlobalModel.VerticesByLinesBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalModel.CubeVerticesByLines);
 
             // Ignore all windows events
             var factory = _swapChain.GetParent<Factory>();
             factory.MakeWindowAssociation(MainWindow.GetRenderForm().Handle, WindowAssociationFlags.IgnoreAll);
 
-            GlobalShaders.SelectToon();
-            GlobalGrid.ReadFile("grid.bin");
-
+            GlobalShaders.SelectOverlap();
             MainWindow.InitInteractForm();
-
+            GlobalGrid.ReadGridFile("grid.bin");
+            GlobalGrid.ReadPropertiesFile("grid.binprops.txt");
 
             var startingPointLight1 = new Lighting.Structs.PointLightObject()
             {
@@ -182,7 +181,8 @@ namespace LayerSlicer
                     {
                         for (int z = 0; z < GlobalGrid.SizesXYZ[2]; z += 1)
                         {
-                            GlobalShaders.UpdateSubPosition(GlobalGrid.GridRenderMatrices[x,y,z]);
+                            GlobalShaders.OverlapingColor = Vector4.One * GlobalGrid.Properties[GlobalGrid.SelectedProperty][x, y, z];
+                            GlobalShaders.UpdateForSubModel(GlobalGrid.GridRenderMatrices[x, y, z]);
                             context.Draw(54, 0);
                         }
                     }

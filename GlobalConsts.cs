@@ -62,7 +62,7 @@ namespace LayerSlicer
 
         public enum selectedShader
         {
-            Toon, Phong, Mesh
+            Toon, Phong, Mesh, Overlap
         }
     }
 }

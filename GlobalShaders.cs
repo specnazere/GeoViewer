@@ -55,7 +55,6 @@ namespace LayerSlicer
         private static PixelShader _toonShader;
         private static PixelShader _phongShader;
         private static PixelShader _meshShader;
-        private static PixelShader _overlapShader;
 
         private static VertexShaderInput _lastVSInput;
 

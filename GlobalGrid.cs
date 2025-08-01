@@ -44,6 +44,8 @@ namespace LayerSlicer
         public static Matrix Rotation;
         public static Matrix[,,] GridRenderMatrices;
         public static int CellsNum;
+        public static Vector4 PropertyMinColor = new(1, 0.5f, 0, 1f);
+        public static Vector4 PropertyMaxColor = new(0.5f, 0, 1f, 1f);
 
         public static unsafe void ReadGridFile(string path)
         {
@@ -146,6 +148,13 @@ namespace LayerSlicer
                     }
                 }
             }
+        }
+
+        public static Vector4 GetCellColor(int x, int y, int z)
+        {
+            return 
+                PropertyMaxColor * Properties[SelectedProperty][x, y, z] +
+                PropertyMinColor * (1 - Properties[SelectedProperty][x, y, z]);
         }
     }
 }

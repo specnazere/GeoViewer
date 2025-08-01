@@ -176,13 +176,13 @@ namespace LayerSlicer
                 GlobalUpdater.Update();
 
                 // Draw the cubes
-                for (int x = 0, i = 0; x < GlobalGrid.SizesXYZ[0]; x += 1)
+                for (int x = 0; x < GlobalGrid.SizesXYZ[0]; x += 1)
                 {
                     for (int y = 0; y < GlobalGrid.SizesXYZ[1]; y += 1)
                     {
                         for (int z = 0; z < GlobalGrid.SizesXYZ[2]; z += 1)
                         {
-                            GlobalShaders.ExternalOverlapingColor = Vector4.One * GlobalGrid.Properties[GlobalGrid.SelectedProperty][x, y, z];
+                            GlobalShaders.ExternalOverlapingColor = GlobalGrid.GetCellColor(x, y, z);
                             GlobalShaders.UpdateForSubModel(GlobalGrid.GridRenderMatrices[x, y, z]);
                             context.Draw(54, 0);
                         }

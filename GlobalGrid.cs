@@ -46,6 +46,9 @@ namespace LayerSlicer
         public static int CellsNum;
         public static Vector4 PropertyMinColor = new(1, 0.5f, 0, 1f);
         public static Vector4 PropertyMaxColor = new(0.5f, 0, 1f, 1f);
+        public static int[] DrawableSlices = { 0, 0, 0 };
+        public static bool DrawSlices = false;
+        
 
         public static unsafe void ReadGridFile(string path)
         {

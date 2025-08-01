@@ -56,6 +56,18 @@ namespace LayerSlicer.Forms
             }
         }
 
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public bool Integer
+        {
+            set
+            {
+                foreach (var sliderWrap in SliderWraps)
+                {
+                    sliderWrap.Integer = value;
+                }
+            }
+        }
+
         public SliderGroup()
         {
             Text = "Таблица слайдеров";

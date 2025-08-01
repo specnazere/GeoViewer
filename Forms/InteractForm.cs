@@ -1225,6 +1225,121 @@ namespace LayerSlicer.Forms
                             }
                         }
                     }
+
+                    var SlicesControlPanel = new CollapsiblePanel("Настройки отображаемых слайсов");
+                    ShaderControlPanel.Add(SlicesControlPanel);
+                    {
+
+                        // Создаем CheckBox
+                        CheckBox FullGridCheckBox = new CheckBox();
+                        FullGridCheckBox.Text = "Полный грид"; // Можно задать текст, если нужно
+                        FullGridCheckBox.Font = GlobalConsts.BasicFont;
+                        FullGridCheckBox.ForeColor = Color.White;
+                        FullGridCheckBox.Checked = true;
+                        SlicesControlPanel.Add(FullGridCheckBox);
+                        FullGridCheckBox.CheckedChanged += (s, e) =>
+                        {
+                            GlobalGrid.DrawSlices = !FullGridCheckBox.Checked;
+                        };
+
+                        int[] savedSlices = { 0, 0, 0 };
+
+                        // Создаем CheckBox
+                        CheckBox SliceXCheckBox = new CheckBox();
+                        SliceXCheckBox.Text = "Отображать слайс по X"; // Можно задать текст, если нужно
+                        SliceXCheckBox.Font = GlobalConsts.BasicFont;
+                        SliceXCheckBox.ForeColor = Color.White;
+                        SliceXCheckBox.Checked = true;
+                        SlicesControlPanel.Add(SliceXCheckBox);
+                        SliceXCheckBox.CheckedChanged += (s, e) =>
+                        {
+                            if (SliceXCheckBox.Checked)
+                            {
+                                GlobalGrid.DrawableSlices[0] = savedSlices[0];
+                            }
+                            else
+                            {
+                                savedSlices[0] = GlobalGrid.DrawableSlices[0];
+                                GlobalGrid.DrawableSlices[0] = -1;
+                            }
+                        };
+
+                        // Создаем CheckBox
+                        CheckBox SliceYCheckBox = new CheckBox();
+                        SliceYCheckBox.Text = "Отображать слайс по Y"; // Можно задать текст, если нужно
+                        SliceYCheckBox.Font = GlobalConsts.BasicFont;
+                        SliceYCheckBox.ForeColor = Color.White;
+                        SliceYCheckBox.Checked = true;
+                        SlicesControlPanel.Add(SliceYCheckBox);
+                        SliceYCheckBox.CheckedChanged += (s, e) =>
+                        {
+                            if (SliceYCheckBox.Checked)
+                            {
+                                GlobalGrid.DrawableSlices[1] = savedSlices[1];
+                            }
+                            else
+                            {
+                                savedSlices[1] = GlobalGrid.DrawableSlices[1];
+                                GlobalGrid.DrawableSlices[1] = -1;
+                            }
+                        };
+
+                        // Создаем CheckBox
+                        CheckBox SliceZCheckBox = new CheckBox();
+                        SliceZCheckBox.Text = "Отображать слайс по Z"; // Можно задать текст, если нужно
+                        SliceZCheckBox.Font = GlobalConsts.BasicFont;
+                        SliceZCheckBox.ForeColor = Color.White;
+                        SliceZCheckBox.Checked = true;
+                        SlicesControlPanel.Add(SliceZCheckBox);
+                        SliceZCheckBox.CheckedChanged += (s, e) =>
+                        {
+                            if (SliceZCheckBox.Checked)
+                            {
+                                GlobalGrid.DrawableSlices[2] = savedSlices[2];
+                            }
+                            else
+                            {
+                                savedSlices[2] = GlobalGrid.DrawableSlices[2];
+                                GlobalGrid.DrawableSlices[2] = -1;
+                            }
+                        };
+
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        SlicesControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения отображаемых слайсов по XYZ";
+                        }
+
+                        var SelectedSlicesControlSliders = new SliderGroup()
+                        {
+                            SetReset = 1,
+                            Minimum = 1,
+                            Height = 200,
+                            Integer = true,
+                        };
+                        SlicesControlPanel.Add(SelectedSlicesControlSliders);
+                        {
+                            SelectedSlicesControlSliders.SliderWraps[0].Maximum = GlobalGrid.SizesXYZ[0];
+                            SelectedSlicesControlSliders.SliderWraps[1].Maximum = GlobalGrid.SizesXYZ[1];
+                            SelectedSlicesControlSliders.SliderWraps[2].Maximum = GlobalGrid.SizesXYZ[2];
+                            SelectedSlicesControlSliders.Reset();
+
+                            SelectedSlicesControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                GlobalGrid.DrawableSlices[0] = (int)SelectedSlicesControlSliders.SliderWraps[0].Value - 1;
+                            };
+                            SelectedSlicesControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                GlobalGrid.DrawableSlices[1] = (int)SelectedSlicesControlSliders.SliderWraps[1].Value - 1;
+                            };
+                            SelectedSlicesControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                GlobalGrid.DrawableSlices[2] = (int)SelectedSlicesControlSliders.SliderWraps[2].Value - 1;
+                            };
+                        }
+                    }
                 }
 
                 var ColorControlPanel = new CollapsiblePanel("Настройки цвета");

@@ -68,8 +68,8 @@ namespace LayerSlicer
 
             GlobalShaders.SelectStrictShader();
             GlobalShaders.SelectExternalOverlap();
-            MainWindow.InitInteractForm();
             GlobalGrid.ReadGridFile("grid.bin");
+            MainWindow.InitInteractForm();
             GlobalGrid.ReadPropertiesFile("grid.binprops.txt");
 
             var startingPointLight1 = new Lighting.Structs.PointLightObject()
@@ -182,6 +182,15 @@ namespace LayerSlicer
                     {
                         for (int z = 0; z < GlobalGrid.SizesXYZ[2]; z += 1)
                         {
+                            if (GlobalGrid.DrawSlices)
+                            {
+                                if (x != GlobalGrid.DrawableSlices[0] &&
+                                    y != GlobalGrid.DrawableSlices[1] &&
+                                    z != GlobalGrid.DrawableSlices[2])
+                                {
+                                    continue;
+                                }
+                            }
                             GlobalShaders.ExternalOverlapingColor = GlobalGrid.GetCellColor(x, y, z);
                             GlobalShaders.UpdateForSubModel(GlobalGrid.GridRenderMatrices[x, y, z]);
                             context.Draw(54, 0);

@@ -1006,6 +1006,7 @@ namespace LayerSlicer.Forms
                     {
                         Font = GlobalConsts.BasicFont,
                         FlatStyle = FlatStyle.Flat,
+                        DropDownStyle = ComboBoxStyle.DropDownList,
                     };
                     ShaderControlPanel.Add(ShaderSelectComboBox);
                     {
@@ -1040,12 +1041,13 @@ namespace LayerSlicer.Forms
                     {
                         SetupLabel(ColorSelectLabel);
                         ColorSelectLabel.Text =
-                            "Выбор цвета";
+                            "Выбор режима окрашивания";
                     }
                     var ColorSelectComboBox = new ComboBox()
                     {
                         Font = GlobalConsts.BasicFont,
                         FlatStyle = FlatStyle.Flat,
+                        DropDownStyle = ComboBoxStyle.DropDownList,
                     };
                     ShaderControlPanel.Add(ColorSelectComboBox);
                     {
@@ -1109,14 +1111,15 @@ namespace LayerSlicer.Forms
                         var PropertySelectLabel = new SelfStretchingLabel();
                         PropertyShadingControlPanel.Add(PropertySelectLabel);
                         {
-                            SetupLabel(ShaderSelectLabel);
-                            ShaderSelectLabel.Text =
+                            SetupLabel(PropertySelectLabel);
+                            PropertySelectLabel.Text =
                                 "Выбор визуализируемого свойства";
                         }
                         _propertyComboBox = new ComboBox()
                         {
                             Font = GlobalConsts.BasicFont,
                             FlatStyle = FlatStyle.Flat,
+                            DropDownStyle = ComboBoxStyle.DropDownList,
                         };
                         PropertyShadingControlPanel.Add(_propertyComboBox);
                         {
@@ -1124,6 +1127,102 @@ namespace LayerSlicer.Forms
                             {
                                 GlobalGrid.SelectedProperty = _propertyComboBox.Text;
                             };
+                        }
+
+                        var ColorOfMaxPropertyControlPanel = new CollapsiblePanel("Цвет максимальных значений");
+                        PropertyShadingControlPanel.Add(ColorOfMaxPropertyControlPanel);
+                        {
+                            var ColorControlLabel = new SelfStretchingLabel();
+                            ColorOfMaxPropertyControlPanel.Add(ColorControlLabel);
+                            {
+                                SetupLabel(ColorControlLabel);
+                                ColorControlLabel.Text =
+                                    "Слайдеры для изменения цвета с наибольшим свойством по компонентам RGB";
+                            }
+
+                            var ColorControlSliders = new SliderGroup()
+                            {
+                                SetReset = 256,
+                                Minimum = 0,
+                                Maximum = 256,
+                                Height = 200,
+                            };
+                            ColorOfMaxPropertyControlPanel.Add(ColorControlSliders);
+                            {
+                                SharpDX.Vector4 bufferColor = GlobalGrid.PropertyMaxColor;
+
+                                ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                                ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                                ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                                ColorControlSliders.Reset();
+
+                                ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMaxColor;
+                                    bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                    GlobalGrid.PropertyMaxColor = bufferColor;
+                                };
+                                ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMaxColor;
+                                    bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                    GlobalGrid.PropertyMaxColor = bufferColor;
+                                };
+                                ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMaxColor;
+                                    bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                    GlobalGrid.PropertyMaxColor = bufferColor;
+                                };
+                            }
+                        }
+
+                        var ColorOfMinPropertyControlPanel = new CollapsiblePanel("Цвет минимальных значений");
+                        PropertyShadingControlPanel.Add(ColorOfMinPropertyControlPanel);
+                        {
+                            var ColorControlLabel = new SelfStretchingLabel();
+                            ColorOfMinPropertyControlPanel.Add(ColorControlLabel);
+                            {
+                                SetupLabel(ColorControlLabel);
+                                ColorControlLabel.Text =
+                                    "Слайдеры для изменения цвета с наибольшим свойством по компонентам RGB";
+                            }
+
+                            var ColorControlSliders = new SliderGroup()
+                            {
+                                SetReset = 256,
+                                Minimum = 0,
+                                Maximum = 256,
+                                Height = 200,
+                            };
+                            ColorOfMinPropertyControlPanel.Add(ColorControlSliders);
+                            {
+                                SharpDX.Vector4 bufferColor = GlobalGrid.PropertyMinColor;
+
+                                ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                                ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                                ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                                ColorControlSliders.Reset();
+
+                                ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMinColor;
+                                    bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                    GlobalGrid.PropertyMinColor = bufferColor;
+                                };
+                                ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMinColor;
+                                    bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                    GlobalGrid.PropertyMinColor = bufferColor;
+                                };
+                                ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMinColor;
+                                    bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                    GlobalGrid.PropertyMinColor = bufferColor;
+                                };
+                            }
                         }
                     }
                 }
@@ -1880,6 +1979,11 @@ namespace LayerSlicer.Forms
             if (e.Button == MouseButtons.Left)
             {
                 _stretching = false;
+
+                _scrollBar.Location = new Point(
+                    Width - GlobalConsts.ScrollBarWidth,
+                    _button.Height);
+
                 UpdateInnerWidth();
                 OnSizeChanged(null, EventArgs.Empty);
             }

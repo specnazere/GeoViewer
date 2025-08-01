@@ -30,10 +30,9 @@ namespace LayerSlicer
                 Position = (rawData.Angle0 + rawData.Angle5) / 2;
                 Position.Y *= -1;
 
-                // Crutches to remove
-                Scale.X = (rawData.Angle2.X - rawData.Angle0.X) / 1.3f;
-                Scale.Z = (rawData.Angle6.Z - rawData.Angle0.Z) / 2.1f;
-                Scale.Y = (rawData.Angle1.Y - rawData.Angle0.Y) / 2f;
+                Scale.X = (rawData.Angle6 - rawData.Angle0).Length() / 2f;
+                Scale.Z = (rawData.Angle2 - rawData.Angle0).Length() / 2f;
+                Scale.Y = (rawData.Angle1 - rawData.Angle0).Length() / 2f;
             }
         }
 

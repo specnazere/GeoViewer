@@ -60,9 +60,14 @@ namespace LayerSlicer
         public const int PerSideVectors = PerVertexVectors * PerTriangleVertices * PerSideTriangles;
         public const int VertexColorOffset = 1;
 
-        public enum selectedShader
+        public enum ShaderType
         {
             Toon, Phong, Mesh, Overlap
+        }
+
+        public enum OverlapType
+        {
+            None, Full, External
         }
     }
 }

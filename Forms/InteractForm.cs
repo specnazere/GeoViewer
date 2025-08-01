@@ -1012,29 +1012,61 @@ namespace LayerSlicer.Forms
                         ShaderSelectComboBox.Items.Add("Мультяшный вид");
                         ShaderSelectComboBox.Items.Add("Стандартный вид");
                         ShaderSelectComboBox.Items.Add("Строгий вид");
-                        ShaderSelectComboBox.Items.Add("Вид свойств");
                         ShaderSelectComboBox.Items.Add("Вид сетки");
-                        ShaderSelectComboBox.SelectedIndex = 0;
+                        ShaderSelectComboBox.SelectedIndex = 2;
 
                         ShaderSelectComboBox.SelectedIndexChanged += (sender, e) =>
                         {
                             switch (ShaderSelectComboBox.SelectedIndex)
                             {
-                                case 0:
-                                    GlobalShaders.SelectToon();
-                                    break;
-                                case 1:
-                                    GlobalShaders.SelectPhong();
-                                    break;
-                                case 2:
-                                    GlobalShaders.SelectStrict();
-                                    break;
-                                case 3:
-                                    GlobalShaders.SelectOverlap();
-                                    break;
-                                case 4:
-                                    GlobalShaders.SelectMesh();
-                                    break;
+                            case 0:
+                                GlobalShaders.SelectToonShader();
+                                break;
+                            case 1:
+                                GlobalShaders.SelectPhongShader();
+                                break;
+                            case 2:
+                                GlobalShaders.SelectStrictShader();
+                                break;
+                            case 3:
+                                GlobalShaders.SelectMeshShader();
+                                break;
+                            }
+                        };
+                    }
+
+                    var ColorSelectLabel = new SelfStretchingLabel();
+                    ShaderControlPanel.Add(ColorSelectLabel);
+                    {
+                        SetupLabel(ColorSelectLabel);
+                        ColorSelectLabel.Text =
+                            "Выбор цвета";
+                    }
+                    var ColorSelectComboBox = new ComboBox()
+                    {
+                        Font = GlobalConsts.BasicFont,
+                        FlatStyle = FlatStyle.Flat,
+                    };
+                    ShaderControlPanel.Add(ColorSelectComboBox);
+                    {
+                        ColorSelectComboBox.Items.Add("Цвета сторон");
+                        ColorSelectComboBox.Items.Add("Полный цвет");
+                        ColorSelectComboBox.Items.Add("Цвет свойства");
+                        ColorSelectComboBox.SelectedIndex = 2;
+
+                        ColorSelectComboBox.SelectedIndexChanged += (sender, e) =>
+                        {
+                            switch (ColorSelectComboBox.SelectedIndex)
+                            {
+                            case 0:
+                                GlobalShaders.SelectNoneOverlap();
+                                break;
+                            case 1:
+                                GlobalShaders.SelectFullOverlap();
+                                break;
+                            case 2:
+                                GlobalShaders.SelectExternalOverlap();
+                                break;
                             }
                         };
                     }

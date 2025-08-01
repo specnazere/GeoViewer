@@ -3,6 +3,8 @@
     float4x4 WorldViewProj;
     float4x4 ModelRotationTransformation;
     float4x4 ModelFullTransformation;
+    float3 OverlapingColor;
+    float OverlapOpacity;
 };
 
 struct VS_IN
@@ -25,8 +27,15 @@ PS_IN VS(VS_IN input)
 {
     PS_IN output = (PS_IN) 0;
 
+    if (OverlapOpacity == 1)
+    {
+        output.col = float4(OverlapingColor, 1.0);
+    }
+    else
+    {
+        output.col = input.col;
+    }
     output.pos = mul(input.pos, WorldViewProj);
-    output.col = input.col;
     output.worldPos = mul(input.pos, ModelFullTransformation); // Переводим в мировые координаты
     output.normal = normalize(mul(input.nor, (float3x3) ModelRotationTransformation)); // Нормаль в мировом пространстве
 

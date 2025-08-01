@@ -66,7 +66,8 @@ namespace LayerSlicer
             var factory = _swapChain.GetParent<Factory>();
             factory.MakeWindowAssociation(MainWindow.GetRenderForm().Handle, WindowAssociationFlags.IgnoreAll);
 
-            GlobalShaders.SelectOverlap();
+            GlobalShaders.SelectStrictShader();
+            GlobalShaders.SelectExternalOverlap();
             MainWindow.InitInteractForm();
             GlobalGrid.ReadGridFile("grid.bin");
             GlobalGrid.ReadPropertiesFile("grid.binprops.txt");
@@ -181,7 +182,7 @@ namespace LayerSlicer
                     {
                         for (int z = 0; z < GlobalGrid.SizesXYZ[2]; z += 1)
                         {
-                            GlobalShaders.OverlapingColor = Vector4.One * GlobalGrid.Properties[GlobalGrid.SelectedProperty][x, y, z];
+                            GlobalShaders.ExternalOverlapingColor = Vector4.One * GlobalGrid.Properties[GlobalGrid.SelectedProperty][x, y, z];
                             GlobalShaders.UpdateForSubModel(GlobalGrid.GridRenderMatrices[x, y, z]);
                             context.Draw(54, 0);
                         }

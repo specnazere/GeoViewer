@@ -3,6 +3,7 @@ using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
+using SharpDX.DirectInput;
 using SharpDX.DXGI;
 using System.Runtime.InteropServices;
 using static LayerSlicer.GlobalConsts;
@@ -49,8 +50,11 @@ namespace LayerSlicer
 
         private static Device _device;
         private static DeviceContext _deviceContext;
+
         private static Buffer _pixelConstsBuffer;
         private static Buffer _vertexConstsBuffer;
+
+
 
         private static PixelShader _toonShader;
         private static PixelShader _phongShader;
@@ -120,6 +124,7 @@ namespace LayerSlicer
             {
                 new VertexBufferBinding(GlobalModel.VerticesByTrianglesBuffer, Utilities.SizeOf<Vector4>() * PerVertexVectors, 0),
                 new VertexBufferBinding(GlobalModel.VerticesByLinesBuffer, Utilities.SizeOf<Vector4>() * PerVertexVectors, 0),
+                new VertexBufferBinding(GlobalModel.BoundBuffer, Utilities.SizeOf<Vector4>() * PerVertexVectors, 0),
             };
 
             // Prepare All the stages
@@ -147,7 +152,7 @@ namespace LayerSlicer
 
         public static void SelectStrictShader()
         {
-            _selectedShader = ShaderType.Mesh;
+            _selectedShader = ShaderType.Strict;
             _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
             _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]);
             _deviceContext.PixelShader.Set(_meshShader);
@@ -247,6 +252,27 @@ namespace LayerSlicer
             }
 
             _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
+        }
+
+        public static void SwitchToBound()
+        {
+            _lastVSInput.OverlapColor = Vector4.Zero;
+            _lastVSInput.OverlapColor.W = 1;
+            _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
+            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
+            _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[2]);
+            _deviceContext.PixelShader.Set(_meshShader);
+        }
+
+        public static void SwitchBack()
+        {
+            switch (_selectedShader)
+            {
+                case ShaderType.Toon: SelectToonShader(); break;
+                case ShaderType.Phong: SelectPhongShader(); break;
+                case ShaderType.Mesh: SelectMeshShader(); break;
+                case ShaderType.Strict: SelectStrictShader(); break;
+            }
         }
     }
 }

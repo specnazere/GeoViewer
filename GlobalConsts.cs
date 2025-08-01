@@ -62,7 +62,7 @@ namespace LayerSlicer
 
         public enum ShaderType
         {
-            Toon, Phong, Mesh, Overlap
+            Toon, Phong, Mesh, Strict
         }
 
         public enum OverlapType

@@ -61,6 +61,7 @@ namespace LayerSlicer
                 bufferDesc
             );
             GlobalModel.VerticesByLinesBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalModel.CubeVerticesByLines);
+            GlobalModel.BoundBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalModel.CubeBound);
 
             // Ignore all windows events
             var factory = _swapChain.GetParent<Factory>();
@@ -191,6 +192,11 @@ namespace LayerSlicer
                                     continue;
                                 }
                             }
+
+                            GlobalShaders.SwitchToBound();
+                            context.Draw(54, 0);
+                            GlobalShaders.SwitchBack();
+
                             GlobalShaders.ExternalOverlapingColor = GlobalGrid.GetCellColor(x, y, z);
                             GlobalShaders.UpdateForSubModel(GlobalGrid.GridRenderMatrices[x, y, z]);
                             context.Draw(54, 0);

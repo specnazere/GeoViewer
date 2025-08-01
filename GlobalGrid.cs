@@ -48,6 +48,7 @@ namespace LayerSlicer
         public static Vector4 PropertyMaxColor = new(0.5f, 0, 1f, 1f);
         public static int[] DrawableSlices = { 0, 0, 0 };
         public static bool DrawSlices = false;
+        public static bool ShowBorders = true;
         
 
         public static unsafe void ReadGridFile(string path)

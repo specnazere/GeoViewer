@@ -193,9 +193,12 @@ namespace LayerSlicer
                                 }
                             }
 
-                            GlobalShaders.SwitchToBound();
-                            context.Draw(54, 0);
-                            GlobalShaders.SwitchBack();
+                            if (GlobalGrid.ShowBorders)
+                            {
+                                GlobalShaders.SwitchToBound();
+                                context.Draw(54, 0);
+                                GlobalShaders.SwitchBack();
+                            }
 
                             GlobalShaders.ExternalOverlapingColor = GlobalGrid.GetCellColor(x, y, z);
                             GlobalShaders.UpdateForSubModel(GlobalGrid.GridRenderMatrices[x, y, z]);

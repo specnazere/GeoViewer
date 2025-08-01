@@ -1072,6 +1072,18 @@ namespace LayerSlicer.Forms
                             }
                         };
                     }
+                    
+                    // Создаем CheckBox
+                    CheckBox BordersCheckBox = new CheckBox();
+                    BordersCheckBox.Text = "Отображение границ"; // Можно задать текст, если нужно
+                    BordersCheckBox.Font = GlobalConsts.BasicFont;
+                    BordersCheckBox.ForeColor = Color.White;
+                    BordersCheckBox.Checked = true;
+                    ShaderControlPanel.Add(BordersCheckBox);
+                    BordersCheckBox.CheckedChanged += (s, e) =>
+                    {
+                        GlobalGrid.ShowBorders = BordersCheckBox.Checked;
+                    };
 
                     var ToonShadingControlPanel = new CollapsiblePanel("Настройки мультяшного вида");
                     ShaderControlPanel.Add(ToonShadingControlPanel);
@@ -1229,7 +1241,6 @@ namespace LayerSlicer.Forms
                     var SlicesControlPanel = new CollapsiblePanel("Настройки отображаемых слайсов");
                     ShaderControlPanel.Add(SlicesControlPanel);
                     {
-
                         // Создаем CheckBox
                         CheckBox FullGridCheckBox = new CheckBox();
                         FullGridCheckBox.Text = "Полный грид"; // Можно задать текст, если нужно

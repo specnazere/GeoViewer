@@ -62,6 +62,7 @@ namespace LayerSlicer
             );
             GlobalModel.VerticesByLinesBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalModel.CubeVerticesByLines);
             GlobalModel.BoundBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalModel.CubeBound);
+            GlobalSurface.ReadSurfFile("Surf");
 
             // Ignore all windows events
             var factory = _swapChain.GetParent<Factory>();
@@ -72,7 +73,6 @@ namespace LayerSlicer
             GlobalGrid.ReadGridFile("grid.bin");
             MainWindow.InitInteractForm();
             GlobalGrid.ReadPropertiesFile("grid.binprops.txt");
-            GlobalSurface.ReadSurfFile("Surf");
 
             var startingPointLight1 = new Lighting.Structs.PointLightObject()
             {
@@ -178,35 +178,7 @@ namespace LayerSlicer
                 GlobalUpdater.Update();
 
                 // Draw the cubes
-                for (int x = 0; x < GlobalGrid.SizesXYZ[0]; x += 1)
-                {
-                    for (int y = 0; y < GlobalGrid.SizesXYZ[1]; y += 1)
-                    {
-                        for (int z = 0; z < GlobalGrid.SizesXYZ[2]; z += 1)
-                        {
-                            if (GlobalGrid.DrawSlices)
-                            {
-                                if (x != GlobalGrid.DrawableSlices[0] &&
-                                    y != GlobalGrid.DrawableSlices[1] &&
-                                    z != GlobalGrid.DrawableSlices[2])
-                                {
-                                    continue;
-                                }
-                            }
-
-                            if (GlobalGrid.ShowBorders)
-                            {
-                                GlobalShaders.SwitchToBound();
-                                context.Draw(54, 0);
-                                GlobalShaders.SwitchBack();
-                            }
-
-                            GlobalShaders.ExternalOverlapingColor = GlobalGrid.GetCellColor(x, y, z);
-                            GlobalShaders.UpdateForSubModel(GlobalGrid.GridRenderMatrices[x, y, z]);
-                            context.Draw(54, 0);
-                        }
-                    }
-                }
+                GlobalShaders.Draw();
 
                 // Present!
                 _swapChain.Present(0, PresentFlags.None);

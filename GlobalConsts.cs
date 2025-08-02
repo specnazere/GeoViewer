@@ -72,5 +72,10 @@ namespace LayerSlicer
         {
             None, Full, External
         }
+
+        public enum DataType
+        {
+            Grid, Surface
+        }
     }
 }

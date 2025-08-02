@@ -992,6 +992,43 @@ namespace LayerSlicer.Forms
             var DisplayControlPanel = new CollapsiblePanel("Управление отображением");
             Add(DisplayControlPanel);
             {
+                var DataSelectPanel = new CollapsiblePanel("Выбор отрисовываемого объекта");
+                DisplayControlPanel.Add(DataSelectPanel);
+                {
+                    var DataSelectLabel = new SelfStretchingLabel();
+                    DataSelectPanel.Add(DataSelectLabel);
+                    {
+                        SetupLabel(DataSelectLabel);
+                        DataSelectLabel.Text =
+                            "Выбор отрисовываемых данных";
+                    }
+                    var DataSelectComboBox = new ComboBox()
+                    {
+                        Font = GlobalConsts.BasicFont,
+                        FlatStyle = FlatStyle.Flat,
+                        DropDownStyle = ComboBoxStyle.DropDownList,
+                    };
+                    DataSelectPanel.Add(DataSelectComboBox);
+                    {
+                        DataSelectComboBox.Items.Add("Грид");
+                        DataSelectComboBox.Items.Add("Поверхность");
+                        DataSelectComboBox.SelectedIndex = 0;
+
+                        DataSelectComboBox.SelectedIndexChanged += (sender, e) =>
+                        {
+                            switch (DataSelectComboBox.SelectedIndex)
+                            {
+                            case 0:
+                                GlobalShaders.SelectGridData();
+                                break;
+                            case 1:
+                                GlobalShaders.SelectSurfaceData();
+                                break;
+                            }
+                        };
+                    }
+                }
+
                 var ShaderControlPanel = new CollapsiblePanel("Настройки отрисовки");
                 DisplayControlPanel.Add(ShaderControlPanel);
                 {

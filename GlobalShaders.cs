@@ -3,7 +3,6 @@ using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
-using SharpDX.DirectInput;
 using SharpDX.DXGI;
 using System.Runtime.InteropServices;
 using static LayerSlicer.GlobalConsts;
@@ -54,8 +53,6 @@ namespace LayerSlicer
         private static Buffer _pixelConstsBuffer;
         private static Buffer _vertexConstsBuffer;
 
-
-
         private static PixelShader _toonShader;
         private static PixelShader _phongShader;
         private static PixelShader _meshShader;
@@ -64,6 +61,7 @@ namespace LayerSlicer
 
         private static ShaderType _selectedShader;
         private static OverlapType _selectedOverlap;
+        private static DataType _selectedDataType;
 
         private static VertexBufferBinding[] _bufferBindings;
 
@@ -125,6 +123,9 @@ namespace LayerSlicer
                 new VertexBufferBinding(GlobalModel.VerticesByTrianglesBuffer, Utilities.SizeOf<Vector4>() * PerVertexVectors, 0),
                 new VertexBufferBinding(GlobalModel.VerticesByLinesBuffer, Utilities.SizeOf<Vector4>() * PerVertexVectors, 0),
                 new VertexBufferBinding(GlobalModel.BoundBuffer, Utilities.SizeOf<Vector4>() * PerVertexVectors, 0),
+
+                new VertexBufferBinding(GlobalSurface.SurfaceBuffer, Utilities.SizeOf<Vector4>() * PerVertexVectors, 0),
+                //new VertexBufferBinding(GlobalSurface.MeshBuffer, Utilities.SizeOf<Vector4>() * PerVertexVectors, 0),
             };
 
             // Prepare All the stages
@@ -138,7 +139,11 @@ namespace LayerSlicer
         {
             _selectedShader = ShaderType.Toon;
             _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]);
+            switch (_selectedDataType)
+            {
+                case DataType.Grid: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]); break;
+                case DataType.Surface: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[3]); break;
+            }
             _deviceContext.PixelShader.Set(_toonShader);
         }
 
@@ -146,7 +151,11 @@ namespace LayerSlicer
         {
             _selectedShader = ShaderType.Phong;
             _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]);
+            switch (_selectedDataType)
+            {
+                case DataType.Grid: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]); break;
+                case DataType.Surface: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[3]); break;
+            }
             _deviceContext.PixelShader.Set(_phongShader);
         }
 
@@ -154,7 +163,11 @@ namespace LayerSlicer
         {
             _selectedShader = ShaderType.Strict;
             _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]);
+            switch (_selectedDataType)
+            {
+                case DataType.Grid: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]); break;
+                case DataType.Surface: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[3]); break;
+            }
             _deviceContext.PixelShader.Set(_meshShader);
         }
 
@@ -162,7 +175,11 @@ namespace LayerSlicer
         {
             _selectedShader = ShaderType.Mesh;
             _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-            _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[1]);
+            switch (_selectedDataType)
+            {
+                case DataType.Grid: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]); break;
+                case DataType.Surface: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[4]); break;
+            }
             _deviceContext.PixelShader.Set(_meshShader);
         }
 
@@ -177,6 +194,70 @@ namespace LayerSlicer
         public static void SelectExternalOverlap()
         {
             _selectedOverlap = OverlapType.External;
+        }
+
+        public static void SelectGridData()
+        {
+            _selectedDataType = DataType.Grid;
+            SwitchBack();
+        }
+        public static void SelectSurfaceData()
+        {
+            _selectedDataType = DataType.Surface;
+            SwitchBack();
+        }
+
+        public static void Draw()
+        {
+            switch (_selectedDataType)
+            {
+            case DataType.Grid:
+                {
+                    for (int x = 0; x < GlobalGrid.SizesXYZ[0]; x += 1)
+                    {
+                        for (int y = 0; y < GlobalGrid.SizesXYZ[1]; y += 1)
+                        {
+                            for (int z = 0; z < GlobalGrid.SizesXYZ[2]; z += 1)
+                            {
+                                if (GlobalGrid.DrawSlices)
+                                {
+                                    if (x != GlobalGrid.DrawableSlices[0] &&
+                                        y != GlobalGrid.DrawableSlices[1] &&
+                                        z != GlobalGrid.DrawableSlices[2])
+                                    {
+                                        continue;
+                                    }
+                                }
+
+                                if (GlobalGrid.ShowBorders)
+                                {
+                                    SwitchToBound();
+                                    _deviceContext.Draw(54, 0);
+                                    SwitchBack();
+                                }
+
+                                ExternalOverlapingColor = GlobalGrid.GetCellColor(x, y, z);
+                                UpdateForSubModel(GlobalGrid.GridRenderMatrices[x, y, z]);
+                                _deviceContext.Draw(54, 0);
+                            }
+                        }
+                    }
+                }
+                break;
+            case DataType.Surface:
+                {
+                    UpdateForSubModel(Matrix.Identity);
+                    if (GlobalGrid.ShowBorders)
+                    {
+                        //SwitchToBound();
+                        //_deviceContext.Draw(GlobalSurface.Size[0] * GlobalSurface.Size[1], 0);
+                        //SwitchBack();
+                    }
+
+                    _deviceContext.Draw(GlobalSurface.Size[0] * GlobalSurface.Size[1] * 4 * 3, 0);
+                }
+                break;
+            }
         }
 
         public static void UpdateBuffers()
@@ -256,12 +337,26 @@ namespace LayerSlicer
 
         public static void SwitchToBound()
         {
-            _lastVSInput.OverlapColor = Vector4.Zero;
-            _lastVSInput.OverlapColor.W = 1;
-            _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
-            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-            _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[2]);
-            _deviceContext.PixelShader.Set(_meshShader);
+            switch (_selectedDataType)
+            {
+            case DataType.Grid:
+                _lastVSInput.OverlapColor = Vector4.Zero;
+                _lastVSInput.OverlapColor.W = 1;
+                _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
+                _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
+                _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[2]);
+                _deviceContext.PixelShader.Set(_meshShader);
+                break;
+
+            case DataType.Surface:
+                _lastVSInput.OverlapColor = Vector4.Zero;
+                _lastVSInput.OverlapColor.W = 1;
+                _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
+                _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
+                _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[2]);
+                _deviceContext.PixelShader.Set(_meshShader);
+                break;
+            }
         }
 
         public static void SwitchBack()

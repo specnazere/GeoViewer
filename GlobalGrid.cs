@@ -1,5 +1,6 @@
 ﻿using SharpDX;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 
 namespace LayerSlicer
 {
@@ -9,14 +10,14 @@ namespace LayerSlicer
         public struct RawCell
         {
             public bool IsActive;
-            public Vector3 Angle0;
-            public Vector3 Angle1;
-            public Vector3 Angle2;
-            public Vector3 Angle3;
-            public Vector3 Angle4;
-            public Vector3 Angle5;
-            public Vector3 Angle6;
-            public Vector3 Angle7;
+            public Vector3 Corner0;
+            public Vector3 Corner1;
+            public Vector3 Corner2;
+            public Vector3 Corner3;
+            public Vector3 Corner4;
+            public Vector3 Corner5;
+            public Vector3 Corner6;
+            public Vector3 Corner7;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -27,12 +28,12 @@ namespace LayerSlicer
 
             public RenderInfo(RawCell rawData)
             {
-                Position = (rawData.Angle0 + rawData.Angle5) / 2;
+                Position = (rawData.Corner0 + rawData.Corner5) / 2;
                 Position.Y *= -1;
 
-                Scale.X = (rawData.Angle6 - rawData.Angle0).Length() / 2f;
-                Scale.Z = (rawData.Angle2 - rawData.Angle0).Length() / 2f;
-                Scale.Y = (rawData.Angle1 - rawData.Angle0).Length() / 2f;
+                Scale.X = (rawData.Corner6 - rawData.Corner0).Length() / 2f;
+                Scale.Z = (rawData.Corner2 - rawData.Corner0).Length() / 2f;
+                Scale.Y = (rawData.Corner1 - rawData.Corner0).Length() / 2f;
             }
         }
 
@@ -49,7 +50,8 @@ namespace LayerSlicer
         public static int[] DrawableSlices = { 0, 0, 0 };
         public static bool DrawSlices = false;
         public static bool ShowBorders = true;
-        
+        public static Vector2[] RealLocationCorners;
+        public static Vector3[] GridCorners = new Vector3[2];
 
         public static unsafe void ReadGridFile(string path)
         {
@@ -66,7 +68,7 @@ namespace LayerSlicer
                 RenderInfo[,,] generalInfo = new RenderInfo[SizesXYZ[0], SizesXYZ[1], SizesXYZ[2]];
                 CellsNum = SizesXYZ[0] * SizesXYZ[1] * SizesXYZ[2];
 
-                Vector3 diff = data[0].Angle0 - data[SizesXYZ[2] - 1].Angle0;
+                Vector3 diff = data[0].Corner0 - data[SizesXYZ[2] - 1].Corner0;
                 diff.Normalize();
                 Rotation = Matrix.RotationYawPitchRoll(
                     (float)Math.Acos(Vector3.Dot(diff, Vector3.UnitZ)) + float.Pi / 2, 0, 0);
@@ -81,7 +83,6 @@ namespace LayerSlicer
                         }
                     }
                 }
-
                 AveragePosition = (generalInfo[0, 0, 0].Position + generalInfo[SizesXYZ[0] - 1, SizesXYZ[1] - 1, SizesXYZ[2] - 1].Position) / 2;
 
                 for (int x = 0; x < SizesXYZ[0]; x += 1)
@@ -104,6 +105,9 @@ namespace LayerSlicer
                         }
                     }
                 }
+
+                GridCorners[0] = generalInfo[0, 0, 0].Position + generalInfo[0, 0, 0].Scale;
+                GridCorners[1] = generalInfo[SizesXYZ[0] - 1, SizesXYZ[1] - 1, SizesXYZ[2] - 1].Position - generalInfo[SizesXYZ[0] - 1, SizesXYZ[1] - 1, SizesXYZ[2] - 1].Scale;
             }
             return;
         }

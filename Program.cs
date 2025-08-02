@@ -72,6 +72,7 @@ namespace LayerSlicer
             GlobalGrid.ReadGridFile("grid.bin");
             MainWindow.InitInteractForm();
             GlobalGrid.ReadPropertiesFile("grid.binprops.txt");
+            GlobalSurface.ReadSurfFile("Surf");
 
             var startingPointLight1 = new Lighting.Structs.PointLightObject()
             {

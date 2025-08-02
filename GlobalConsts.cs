@@ -56,9 +56,12 @@ namespace LayerSlicer
 
         public const int PerVertexVectors = 3;
         public const int PerTriangleVertices = 3;
+        public const int PerLineVertices = 2;
         public const int PerSideTriangles = 2;
         public const int PerSideVectors = PerVertexVectors * PerTriangleVertices * PerSideTriangles;
+        public const int VertexPositionOffset = 0;
         public const int VertexColorOffset = 1;
+        public const int VertexNormalOffset = 2;
 
         public enum ShaderType
         {

@@ -63,6 +63,9 @@ namespace LayerSlicer
         public const int VertexColorOffset = 1;
         public const int VertexNormalOffset = 2;
 
+        public const string SizeRegex = @"([0-9]+) x ([0-9]+)";
+        public const string FloatRegex = @"-?[0-9]+.-?[0-9]+";
+
         public enum ShaderType
         {
             Toon, Phong, Mesh, Strict

@@ -138,48 +138,24 @@ namespace LayerSlicer
         public static void SelectToonShader()
         {
             _selectedShader = ShaderType.Toon;
-            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            switch (_selectedDataType)
-            {
-                case DataType.Grid: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]); break;
-                case DataType.Surface: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[3]); break;
-            }
             _deviceContext.PixelShader.Set(_toonShader);
         }
 
         public static void SelectPhongShader()
         {
             _selectedShader = ShaderType.Phong;
-            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            switch (_selectedDataType)
-            {
-                case DataType.Grid: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]); break;
-                case DataType.Surface: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[3]); break;
-            }
             _deviceContext.PixelShader.Set(_phongShader);
         }
 
         public static void SelectStrictShader()
         {
             _selectedShader = ShaderType.Strict;
-            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            switch (_selectedDataType)
-            {
-                case DataType.Grid: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]); break;
-                case DataType.Surface: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[3]); break;
-            }
             _deviceContext.PixelShader.Set(_meshShader);
         }
 
         public static void SelectMeshShader()
         {
             _selectedShader = ShaderType.Mesh;
-            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-            switch (_selectedDataType)
-            {
-                case DataType.Grid: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]); break;
-                case DataType.Surface: _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[4]); break;
-            }
             _deviceContext.PixelShader.Set(_meshShader);
         }
 
@@ -245,17 +221,7 @@ namespace LayerSlicer
                 }
                 break;
             case DataType.Surface:
-                {
-                    UpdateForSubModel(Matrix.Identity);
-                    if (GlobalGrid.ShowBorders)
-                    {
-                        //SwitchToBound();
-                        //_deviceContext.Draw(GlobalSurface.Size[0] * GlobalSurface.Size[1], 0);
-                        //SwitchBack();
-                    }
-
-                    _deviceContext.Draw(GlobalSurface.Size[0] * GlobalSurface.Size[1] * 4 * 3, 0);
-                }
+                GlobalSurface.Draw(_selectedShader);
                 break;
             }
         }

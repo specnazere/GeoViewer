@@ -63,6 +63,7 @@ namespace LayerSlicer
             GlobalModel.VerticesByLinesBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalModel.CubeVerticesByLines);
             GlobalModel.BoundBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalModel.CubeBound);
             GlobalSurface.ReadSurfFile("Surf");
+            GlobalSurface.AddWell("well");
 
             // Ignore all windows events
             var factory = _swapChain.GetParent<Factory>();

@@ -1,6 +1,5 @@
 ﻿using SharpDX;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 
 namespace LayerSlicer
 {

@@ -1058,16 +1058,16 @@ namespace LayerSlicer.Forms
                             switch (ShaderSelectComboBox.SelectedIndex)
                             {
                             case 0:
-                                GlobalShaders.SelectToonShader();
+                                GlobalShaders.SelectToonPixelShader();
                                 break;
                             case 1:
-                                GlobalShaders.SelectPhongShader();
+                                GlobalShaders.SelectPhongPixelShader();
                                 break;
                             case 2:
-                                GlobalShaders.SelectStrictShader();
+                                GlobalShaders.SelectStrictPixelShader();
                                 break;
                             case 3:
-                                GlobalShaders.SelectMeshShader();
+                                GlobalShaders.SelectMeshPixelShader();
                                 break;
                             }
                         };

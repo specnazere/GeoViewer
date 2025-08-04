@@ -69,7 +69,7 @@ namespace LayerSlicer
             var factory = _swapChain.GetParent<Factory>();
             factory.MakeWindowAssociation(MainWindow.GetRenderForm().Handle, WindowAssociationFlags.IgnoreAll);
 
-            GlobalShaders.SelectStrictShader();
+            GlobalShaders.SelectStrictPixelShader();
             GlobalShaders.SelectExternalOverlap();
             GlobalGrid.ReadGridFile("grid.bin");
             MainWindow.InitInteractForm();

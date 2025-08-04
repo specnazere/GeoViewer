@@ -66,7 +66,7 @@ namespace LayerSlicer
         public const string SizeRegex = @"([0-9]+) x ([0-9]+)";
         public const string FloatRegex = @"-?[0-9]+.-?[0-9]+";
 
-        public enum ShaderType
+        public enum PixelShaderType
         {
             Toon, Phong, Mesh, Strict
         }
@@ -79,6 +79,11 @@ namespace LayerSlicer
         public enum DataType
         {
             Grid, Surface
+        }
+
+        public enum VertexShaderType
+        {
+            ExternalColorOverlap, HeightColorOverlap
         }
     }
 }

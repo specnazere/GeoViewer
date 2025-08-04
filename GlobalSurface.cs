@@ -1,8 +1,11 @@
 ﻿using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
+using SharpDX.DXGI;
 using System;
 using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using Buffer = SharpDX.Direct3D11.Buffer;
 
@@ -33,6 +36,15 @@ namespace LayerSlicer
 
         public static int[] Size = new int[2];
         public static Vector4 NormalisedSurfaceOffset;
+
+        public static Vector4 TopColor = new(0.9f, 0.9f, 0.9f, 1f);
+        public static float TopHeight = 2000;
+
+        public static Vector4 BotColor = new(0.1f, 0.95f, 0.1f, 1f);
+        public static float BotHeight = 0;
+
+        public static Vector4 MidColor = new(0.6f, 0.3f, 0f, 1f);
+        public static float MidHeight = 1600;
 
         static GlobalSurface()
         {
@@ -167,32 +179,32 @@ namespace LayerSlicer
                                 SurfacePoints[x + 1, y + 1]
                             ) / 4 ;
 
-                        AddVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x, y + 1]);
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x, y + 1]);
                         trianglesIndex += GlobalConsts.PerVertexVectors;
-                        AddVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x, y]);
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x, y]);
                         trianglesIndex += GlobalConsts.PerVertexVectors;
-                        AddVertex(ref RenderSurface, trianglesIndex, QuadCenter);
-                        trianglesIndex += GlobalConsts.PerVertexVectors;
-
-                        AddVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x, y]);
-                        trianglesIndex += GlobalConsts.PerVertexVectors;
-                        AddVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x + 1, y]);
-                        trianglesIndex += GlobalConsts.PerVertexVectors;
-                        AddVertex(ref RenderSurface, trianglesIndex, QuadCenter);
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, QuadCenter);
                         trianglesIndex += GlobalConsts.PerVertexVectors;
 
-                        AddVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x + 1, y]);
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x, y]);
                         trianglesIndex += GlobalConsts.PerVertexVectors;
-                        AddVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x + 1, y + 1]);
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x + 1, y]);
                         trianglesIndex += GlobalConsts.PerVertexVectors;
-                        AddVertex(ref RenderSurface, trianglesIndex, QuadCenter);
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, QuadCenter);
                         trianglesIndex += GlobalConsts.PerVertexVectors;
 
-                        AddVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x + 1, y + 1]);
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x + 1, y]);
                         trianglesIndex += GlobalConsts.PerVertexVectors;
-                        AddVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x, y + 1]);
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x + 1, y + 1]);
                         trianglesIndex += GlobalConsts.PerVertexVectors;
-                        AddVertex(ref RenderSurface, trianglesIndex, QuadCenter);
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, QuadCenter);
+                        trianglesIndex += GlobalConsts.PerVertexVectors;
+
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x + 1, y + 1]);
+                        trianglesIndex += GlobalConsts.PerVertexVectors;
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, SurfacePoints[x, y + 1]);
+                        trianglesIndex += GlobalConsts.PerVertexVectors;
+                        AddHeightColoredVertex(ref RenderSurface, trianglesIndex, QuadCenter);
                         trianglesIndex += GlobalConsts.PerVertexVectors;
                     }
                 }
@@ -303,27 +315,13 @@ namespace LayerSlicer
             MeshedWellVerticesBuffer = new VertexBufferBinding(MeshedWellBuffer, Utilities.SizeOf<Vector4>() * GlobalConsts.PerVertexVectors, 0);
         }
 
-        private static void AddVertex(ref Vector4[] array, int index, Vector4 toAdd)
-        {
-            array[index + GlobalConsts.VertexPositionOffset] = toAdd;
-            array[index + GlobalConsts.VertexColorOffset] = Vector4.One;
-            array[index + GlobalConsts.VertexNormalOffset] = Vector4.UnitY;
-        }
-
-        public static void Draw(GlobalConsts.ShaderType shaderType)
-        {
-            GlobalShaders.UpdateForSubModel(Matrix.Identity);
-            DrawSurface(shaderType);
-            DrawWell(shaderType);
-        }
-
-        public static void DrawSurface(GlobalConsts.ShaderType shaderType)
+        public static void DrawSurface(GlobalConsts.PixelShaderType shaderType)
         {
             switch (shaderType)
             {
-            case GlobalConsts.ShaderType.Toon:
-            case GlobalConsts.ShaderType.Strict:
-            case GlobalConsts.ShaderType.Phong:
+            case GlobalConsts.PixelShaderType.Toon:
+            case GlobalConsts.PixelShaderType.Strict:
+            case GlobalConsts.PixelShaderType.Phong:
                 {
                     _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
                     _deviceContext.InputAssembler.SetVertexBuffers(0, SurfaceVerticesBuffer);
@@ -340,41 +338,32 @@ namespace LayerSlicer
             }
         }
 
-        public static void DrawWell(GlobalConsts.ShaderType shaderType)
+        private static void AddVertex(ref Vector4[] array, int index, Vector4 toAdd)
         {
-            switch (shaderType)
-            {
-            case GlobalConsts.ShaderType.Toon:
-            case GlobalConsts.ShaderType.Strict:
-            case GlobalConsts.ShaderType.Phong:
-                {
-                    _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-                    _deviceContext.InputAssembler.SetVertexBuffers(0, MeshedWellVerticesBuffer);
-                    if (GlobalGrid.ShowBorders)
-                    {
-                        //SwitchToBound();
-                        //_deviceContext.Draw(GlobalSurface.Size[0] * GlobalSurface.Size[1], 0);
-                        //SwitchBack();
-                    }
+            array[index + GlobalConsts.VertexPositionOffset] = toAdd;
+            array[index + GlobalConsts.VertexColorOffset] = Vector4.One;
+            array[index + GlobalConsts.VertexNormalOffset] = Vector4.UnitY;
+        }
 
-                    _deviceContext.Draw(MeshedWell.Length, 0);
-                    break;
-                }
+        private static void AddHeightColoredVertex(ref Vector4[] array, int index, Vector4 toAdd)
+        {
+            float height = (float)Math.Clamp(toAdd.Y, BotHeight, TopHeight);
+
+            Vector4 color;
+            if (height > MidHeight)
+            {
+                float diff = TopHeight - MidHeight;
+                height -= MidHeight;
+                color = MidColor * (1 - height / diff) + TopColor * (height / diff);
             }
-            /*
-            GlobalShaders.SelectFullOverlap();
-            _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-            _deviceContext.InputAssembler.SetVertexBuffers(0, WellLinesVerticesBuffer);
-
-            if (GlobalGrid.ShowBorders)
+            else
             {
-                //SwitchToBound();
-                //_deviceContext.Draw(GlobalSurface.Size[0] * GlobalSurface.Size[1], 0);
-                //SwitchBack();
+                color = BotColor * (height / MidHeight) + MidColor * (1 - height / MidHeight);
             }
 
-            _deviceContext.Draw(Well.Length, 0);
-            */
+            array[index + GlobalConsts.VertexPositionOffset] = toAdd;
+            array[index + GlobalConsts.VertexColorOffset] = color;
+            array[index + GlobalConsts.VertexNormalOffset] = Vector4.UnitY;
         }
     }
 }

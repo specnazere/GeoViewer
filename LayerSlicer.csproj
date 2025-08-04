@@ -26,16 +26,16 @@
     <None Update="grid.binprops.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Shaders\meshShader.fx">
+    <None Update="Shaders\Pixel\meshShader.fx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Shaders\phongShader.fx">
+    <None Update="Shaders\Pixel\phongShader.fx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Shaders\toonShader.fx">
+    <None Update="Shaders\Pixel\toonShader.fx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Shaders\vertexShader.fx">
+    <None Update="Shaders\Vertex\colorOverlapShader.fx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="shaders.fx">

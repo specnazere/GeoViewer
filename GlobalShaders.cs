@@ -14,12 +14,27 @@ namespace LayerSlicer
     internal static class GlobalShaders
     {
         [StructLayout(LayoutKind.Sequential)]
-        private struct VertexShaderInput()
+        private struct VertexColorOverlapShaderInput()
         {
             public Matrix WorldViewProj;
             public Matrix ModelRotationTransformation;
             public Matrix ModelFullTransformation;
             public Vector4 OverlapColor;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct VertexColorByHeightShaderInput()
+        {
+            public Matrix WorldViewProj;
+            public Matrix ModelRotationTransformation;
+            public Matrix ModelFullTransformation;
+            public Vector4 OverlapColor;
+            public Vector3 TopColor;
+            public float TopHeight;
+            public Vector3 BotColor;
+            public float BotHeight;
+            public Vector3 MidColor;
+            public float MidRelaiveHeight;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -57,9 +72,9 @@ namespace LayerSlicer
         private static PixelShader _phongShader;
         private static PixelShader _meshShader;
 
-        private static VertexShaderInput _lastVSInput;
+        private static VertexColorOverlapShaderInput _lastVSInput;
 
-        private static ShaderType _selectedShader;
+        private static PixelShaderType _selectedShader;
         private static OverlapType _selectedOverlap;
         private static DataType _selectedDataType;
 
@@ -77,16 +92,16 @@ namespace LayerSlicer
             _deviceContext = _device.ImmediateContext;
 
             // Compile Vertex and Pixel shaders
-            var vertexShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/vertexShader.fx", "VS", "vs_4_0");
+            var vertexShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/Vertex/colorOverlapShader.fx", "VS", "vs_4_0");
             var vertexShader = new VertexShader(_device, vertexShaderByteCode);
 
-            var toonPixelShaderToonByteCode = ShaderBytecode.CompileFromFile("Shaders/toonShader.fx", "PS_Toon", "ps_4_0");
+            var toonPixelShaderToonByteCode = ShaderBytecode.CompileFromFile("Shaders/Pixel/toonShader.fx", "PS_Toon", "ps_4_0");
             _toonShader = new PixelShader(_device, toonPixelShaderToonByteCode);
 
-            var phongPixelShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/phongShader.fx", "PS_Phong", "ps_4_0");
+            var phongPixelShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/Pixel/phongShader.fx", "PS_Phong", "ps_4_0");
             _phongShader = new PixelShader(_device, phongPixelShaderByteCode);
 
-            var meshPixelShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/meshShader.fx", "PS_Mesh", "ps_4_0");
+            var meshPixelShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/Pixel/meshShader.fx", "PS_Mesh", "ps_4_0");
             _meshShader = new PixelShader(_device, meshPixelShaderByteCode);
 
             var signature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
@@ -135,52 +150,53 @@ namespace LayerSlicer
             _deviceContext.PixelShader.SetConstantBuffer(0, _pixelConstsBuffer);
         }
 
-        public static void SelectToonShader()
+        public static void SelectToonPixelShader()
         {
-            _selectedShader = ShaderType.Toon;
+            _selectedShader = PixelShaderType.Toon;
             _deviceContext.PixelShader.Set(_toonShader);
         }
 
-        public static void SelectPhongShader()
+        public static void SelectPhongPixelShader()
         {
-            _selectedShader = ShaderType.Phong;
+            _selectedShader = PixelShaderType.Phong;
             _deviceContext.PixelShader.Set(_phongShader);
         }
 
-        public static void SelectStrictShader()
+        public static void SelectStrictPixelShader()
         {
-            _selectedShader = ShaderType.Strict;
+            _selectedShader = PixelShaderType.Strict;
             _deviceContext.PixelShader.Set(_meshShader);
         }
 
-        public static void SelectMeshShader()
+        public static void SelectMeshPixelShader()
         {
-            _selectedShader = ShaderType.Mesh;
+            _selectedShader = PixelShaderType.Mesh;
             _deviceContext.PixelShader.Set(_meshShader);
         }
 
         public static void SelectNoneOverlap()
         {
             _selectedOverlap = OverlapType.None;
+            UpdateOverlap();
         }
         public static void SelectFullOverlap()
         {
             _selectedOverlap = OverlapType.Full;
+            UpdateOverlap();
         }
         public static void SelectExternalOverlap()
         {
             _selectedOverlap = OverlapType.External;
+            UpdateOverlap();
         }
 
         public static void SelectGridData()
         {
             _selectedDataType = DataType.Grid;
-            SwitchBack();
         }
         public static void SelectSurfaceData()
         {
             _selectedDataType = DataType.Surface;
-            SwitchBack();
         }
 
         public static void Draw()
@@ -188,47 +204,144 @@ namespace LayerSlicer
             switch (_selectedDataType)
             {
             case DataType.Grid:
-                {
-                    for (int x = 0; x < GlobalGrid.SizesXYZ[0]; x += 1)
                     {
-                        for (int y = 0; y < GlobalGrid.SizesXYZ[1]; y += 1)
+                        switch (_selectedShader)
                         {
-                            for (int z = 0; z < GlobalGrid.SizesXYZ[2]; z += 1)
-                            {
-                                if (GlobalGrid.DrawSlices)
+                            case PixelShaderType.Toon:
+                            case PixelShaderType.Strict:
+                            case PixelShaderType.Phong:
+
+                                _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+                                _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[0]);
+
+                                for (int x = 0; x < GlobalGrid.SizesXYZ[0]; x += 1)
                                 {
-                                    if (x != GlobalGrid.DrawableSlices[0] &&
-                                        y != GlobalGrid.DrawableSlices[1] &&
-                                        z != GlobalGrid.DrawableSlices[2])
+                                    for (int y = 0; y < GlobalGrid.SizesXYZ[1]; y += 1)
                                     {
-                                        continue;
+                                        for (int z = 0; z < GlobalGrid.SizesXYZ[2]; z += 1)
+                                        {
+                                            if (GlobalGrid.DrawSlices)
+                                            {
+                                                if (x != GlobalGrid.DrawableSlices[0] &&
+                                                    y != GlobalGrid.DrawableSlices[1] &&
+                                                    z != GlobalGrid.DrawableSlices[2])
+                                                {
+                                                    continue;
+                                                }
+                                            }
+
+                                            ExternalOverlapingColor = GlobalGrid.GetCellColor(x, y, z);
+                                            UpdateOverlap();
+                                            UpdateForSubModel(GlobalGrid.GridRenderMatrices[x, y, z]);
+                                            _deviceContext.Draw(54, 0);
+                                        }
                                     }
                                 }
 
                                 if (GlobalGrid.ShowBorders)
                                 {
-                                    SwitchToBound();
-                                    _deviceContext.Draw(54, 0);
-                                    SwitchBack();
-                                }
+                                    _lastVSInput.OverlapColor = Vector4.Zero;
+                                    _lastVSInput.OverlapColor.W = 1;
+                                    _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
+                                    _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
+                                    _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[2]);
+                                    _deviceContext.PixelShader.Set(_meshShader);
 
-                                ExternalOverlapingColor = GlobalGrid.GetCellColor(x, y, z);
-                                UpdateForSubModel(GlobalGrid.GridRenderMatrices[x, y, z]);
-                                _deviceContext.Draw(54, 0);
-                            }
+                                    for (int x = 0; x < GlobalGrid.SizesXYZ[0]; x += 1)
+                                    {
+                                        for (int y = 0; y < GlobalGrid.SizesXYZ[1]; y += 1)
+                                        {
+                                            for (int z = 0; z < GlobalGrid.SizesXYZ[2]; z += 1)
+                                            {
+                                                if (GlobalGrid.DrawSlices)
+                                                {
+                                                    if (x != GlobalGrid.DrawableSlices[0] &&
+                                                        y != GlobalGrid.DrawableSlices[1] &&
+                                                        z != GlobalGrid.DrawableSlices[2])
+                                                    {
+                                                        continue;
+                                                    }
+                                                }
+                                                UpdateForSubModel(GlobalGrid.GridRenderMatrices[x, y, z]);
+                                                _deviceContext.Draw(54, 0);
+                                            }
+                                        }
+                                    }
+                                }
+                                break;
                         }
                     }
-                }
                 break;
             case DataType.Surface:
-                GlobalSurface.Draw(_selectedShader);
-                break;
+                    SelectFullOverlap();
+                    UpdateForSubModel(Matrix.Identity);
+                    if (true)
+                    {
+                        switch (_selectedShader)
+                        {
+                            case PixelShaderType.Toon:
+                            case PixelShaderType.Strict:
+                            case PixelShaderType.Phong:
+                                {
+                                    _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+                                    _deviceContext.InputAssembler.SetVertexBuffers(0, GlobalSurface.MeshedWellVerticesBuffer);
+                                    if (GlobalGrid.ShowBorders)
+                                    {
+                                        //SwitchToBound();
+                                        //_deviceContext.Draw(GlobalSurface.Size[0] * GlobalSurface.Size[1], 0);
+                                        //SwitchBack();
+                                    }
+
+                                    _deviceContext.Draw(GlobalSurface.MeshedWell.Length, 0);
+                                    break;
+                                }
+                        }
+                        /*
+                        GlobalShaders.SelectFullOverlap();
+                        _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
+                        _deviceContext.InputAssembler.SetVertexBuffers(0, WellLinesVerticesBuffer);
+
+                        if (GlobalGrid.ShowBorders)
+                        {
+                            //SwitchToBound();
+                            //_deviceContext.Draw(GlobalSurface.Size[0] * GlobalSurface.Size[1], 0);
+                            //SwitchBack();
+                        }
+
+                        _deviceContext.Draw(Well.Length, 0);
+                        */
+                    }
+                    SelectNoneOverlap();
+                    UpdateForSubModel(Matrix.Identity);
+                    if (true)
+                    {
+                        switch (_selectedShader)
+                        {
+                            case PixelShaderType.Toon:
+                            case PixelShaderType.Strict:
+                            case PixelShaderType.Phong:
+                                {
+                                    _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+                                    _deviceContext.InputAssembler.SetVertexBuffers(0, GlobalSurface.SurfaceVerticesBuffer);
+                                    if (GlobalGrid.ShowBorders)
+                                    {
+                                        //SwitchToBound();
+                                        //_deviceContext.Draw(GlobalSurface.Size[0] * GlobalSurface.Size[1], 0);
+                                        //SwitchBack();
+                                    }
+
+                                    _deviceContext.Draw(GlobalSurface.RenderSurface.Length, 0);
+                                    break;
+                                }
+                        }
+                    }
+                    break;
             }
         }
 
         public static void UpdateBuffers()
         {
-            var _lastVSInput = new VertexShaderInput()
+            var _lastVSInput = new VertexColorOverlapShaderInput()
             {
                 WorldViewProj = GlobalModel.Matrix * GlobalCamera.GetMatrix(),
                 ModelRotationTransformation = GlobalModel.GetRotationMatrix(),
@@ -241,7 +354,7 @@ namespace LayerSlicer
 
             switch (_selectedShader)
             {
-            case ShaderType.Toon:
+            case PixelShaderType.Toon:
                 var toonShaderInput = new ToonShaderInput()
                 {
                     AmbiendLighting = GlobalLighting.AmbiendLighting,
@@ -256,7 +369,7 @@ namespace LayerSlicer
                 _deviceContext.UpdateSubresource(ref toonShaderInput, _pixelConstsBuffer);
                 break;
 
-            case ShaderType.Phong:
+            case PixelShaderType.Phong:
                 var phongShaderInput = new PhongShaderInput()
                 {
                     AmbiendLighting = GlobalLighting.AmbiendLighting,
@@ -282,57 +395,25 @@ namespace LayerSlicer
             _lastVSInput.ModelFullTransformation = subTransformationMatrix * GlobalModel.Matrix;
             _lastVSInput.ModelFullTransformation.Transpose();
 
-            switch (_selectedOverlap)
-            {
-            case OverlapType.None:
-                _lastVSInput.OverlapColor = Vector4.Zero;
-                break;
-
-            case OverlapType.Full:
-                _lastVSInput.OverlapColor = Vector4.One;
-                break;
-
-            case OverlapType.External:
-                ExternalOverlapingColor.W = 1f;
-                _lastVSInput.OverlapColor = ExternalOverlapingColor;
-                break;
-            }
-
             _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
         }
 
-        public static void SwitchToBound()
+        public static void UpdateOverlap()
         {
-            switch (_selectedDataType)
+            switch (_selectedOverlap)
             {
-            case DataType.Grid:
-                _lastVSInput.OverlapColor = Vector4.Zero;
-                _lastVSInput.OverlapColor.W = 1;
-                _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
-                _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-                _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[2]);
-                _deviceContext.PixelShader.Set(_meshShader);
-                break;
+                case OverlapType.None:
+                    _lastVSInput.OverlapColor = Vector4.Zero;
+                    break;
 
-            case DataType.Surface:
-                _lastVSInput.OverlapColor = Vector4.Zero;
-                _lastVSInput.OverlapColor.W = 1;
-                _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
-                _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
-                _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[2]);
-                _deviceContext.PixelShader.Set(_meshShader);
-                break;
-            }
-        }
+                case OverlapType.Full:
+                    _lastVSInput.OverlapColor = Vector4.One;
+                    break;
 
-        public static void SwitchBack()
-        {
-            switch (_selectedShader)
-            {
-                case ShaderType.Toon: SelectToonShader(); break;
-                case ShaderType.Phong: SelectPhongShader(); break;
-                case ShaderType.Mesh: SelectMeshShader(); break;
-                case ShaderType.Strict: SelectStrictShader(); break;
+                case OverlapType.External:
+                    ExternalOverlapingColor.W = 1f;
+                    _lastVSInput.OverlapColor = ExternalOverlapingColor;
+                    break;
             }
         }
     }

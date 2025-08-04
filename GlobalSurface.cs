@@ -11,6 +11,7 @@ namespace LayerSlicer
     internal static class GlobalSurface
     {
         private static DeviceContext _deviceContext;
+        private static Vector4[] Circle;
 
         public static Vector2[] SurfaceCorners = new Vector2[2];
 
@@ -27,12 +28,27 @@ namespace LayerSlicer
         public static Buffer WellLinesBuffer;
         public static VertexBufferBinding WellLinesVerticesBuffer;
 
+        public static Buffer MeshedWellBuffer;
+        public static VertexBufferBinding MeshedWellVerticesBuffer;
+
         public static int[] Size = new int[2];
         public static Vector4 NormalisedSurfaceOffset;
 
         static GlobalSurface()
         {
             _deviceContext = Program.GetDevice().ImmediateContext;
+
+            Circle = new Vector4[6];
+
+            float angleDiff = float.Tau / 6;
+            for (int i = 0; i < 6; i += 1)
+            {
+                Circle[i] = new Vector4(
+                    (float)Math.Cos(angleDiff * i) * 30f,
+                    0, 
+                    (float)Math.Sin(angleDiff * i) * 30f, 
+                    1);
+            }
         }
 
         public static void ReadSurfFile(string path)
@@ -189,9 +205,9 @@ namespace LayerSlicer
 
         public static void AddWell(string path)
         {
+            var pointsBuffer = new List<Vector4>();
             using (var reader = new StreamReader("well"))
             {
-                var vertexesBuffer = new List<Vector4>();
                 string readedPoint = reader.ReadLine();
                 MatchCollection match;
 
@@ -200,31 +216,98 @@ namespace LayerSlicer
                     readedPoint = reader.ReadLine();
                     match = Regex.Matches(readedPoint, GlobalConsts.FloatRegex);
 
-                    vertexesBuffer.Add(new Vector4(
+                    pointsBuffer.Add(new Vector4(
                         float.Parse(match[0].Groups[0].Value),
                         float.Parse(match[2].Groups[0].Value),
                         float.Parse(match[1].Groups[0].Value),
                         1) - NormalisedSurfaceOffset);
                 }
 
-                Well = new Vector4[GlobalConsts.PerVertexVectors * GlobalConsts.PerLineVertices * (vertexesBuffer.Count - 1)];
+                Well = new Vector4[GlobalConsts.PerVertexVectors * GlobalConsts.PerLineVertices * (pointsBuffer.Count - 1)];
 
-                for (int i = 0; i < vertexesBuffer.Count - 1; i += 1)
+                for (int i = 0; i < pointsBuffer.Count - 1; i += 1)
                 {
-                    AddVertex(ref Well, i * GlobalConsts.PerLineVertices,     vertexesBuffer[i]);
-                    AddVertex(ref Well, i * GlobalConsts.PerLineVertices + 1, vertexesBuffer[i + 1]);
+                    AddVertex(ref Well, i * GlobalConsts.PerLineVertices,     pointsBuffer[i]);
+                    AddVertex(ref Well, i * GlobalConsts.PerLineVertices + 1, pointsBuffer[i + 1]);
                 }
             }
 
             WellLinesBuffer = Buffer.Create(Program.GetDevice(), BindFlags.VertexBuffer, Well);
             WellLinesVerticesBuffer = new VertexBufferBinding(WellLinesBuffer, Utilities.SizeOf<Vector4>() * GlobalConsts.PerVertexVectors, 0);
+
+            MeshedWell = new Vector4[GlobalConsts.PerVertexVectors * GlobalConsts.PerTriangleVertices * 2 * 6 * (pointsBuffer.Count - 1)];
+
+            var Axises = new Vector3[pointsBuffer.Count];
+            var Angles = new float[pointsBuffer.Count];
+
+            for (int i = 1; i < (pointsBuffer.Count - 1); i++)
+            {
+                Vector4 backVector4 = pointsBuffer[i] - pointsBuffer[i - 1];
+                Vector3 backVector3 = new Vector3(backVector4.X, backVector4.Y, backVector4.Z);
+                Vector4 frontVector4 = pointsBuffer[i] - pointsBuffer[i + 1];
+                Vector3 frontVector3 = new Vector3(frontVector4.X, frontVector4.Y, frontVector4.Z);
+                Axises[i] = Vector3.Cross(backVector3, frontVector3);
+                Axises[i].Normalize();
+
+                Vector3 circleSurfaceVector = Vector3.Normalize(backVector3) + Vector3.Normalize(frontVector3);
+                circleSurfaceVector.Normalize();
+                Angles[i] = (float.Pi / 2 - (float)Math.Acos(Vector3.Dot(circleSurfaceVector, Vector3.UnitY))) * -1;
+            }
+            Axises[0] = Axises[1];
+            Axises[pointsBuffer.Count - 1] = Axises[pointsBuffer.Count - 2];
+
+            Vector4 firstVector4 = pointsBuffer[0] - pointsBuffer[1];
+            Vector3 firstVector3 = new Vector3(firstVector4.X, firstVector4.Y, firstVector4.Z);
+            firstVector3.Normalize();
+            Angles[0] = (float)Math.Acos(Vector3.Dot(firstVector3, Vector3.UnitY));
+
+            Vector4 lastVector4 = pointsBuffer[pointsBuffer.Count - 2] - pointsBuffer[pointsBuffer.Count - 1];
+            Vector3 lastVector3 = new Vector3(lastVector4.X, lastVector4.Y, lastVector4.Z);
+            lastVector3.Normalize();
+            Angles[pointsBuffer.Count - 1] = (float)Math.Acos(Vector3.Dot(lastVector3, Vector3.UnitY));
+
+            var cuts = new Vector4[pointsBuffer.Count, 6];
+            for (int i = 0; i < pointsBuffer.Count; i++)
+            {
+                var rotationMatrix = Matrix.RotationAxis(Axises[i], Angles[i]);
+
+                for (int j = 0; j < 6; j++)
+                {
+                    cuts[i, j] = Vector4.Transform(Circle[j], rotationMatrix) + pointsBuffer[i];
+                }
+            }
+
+            int addedVectors = 0;
+            for (int i = 0; i < pointsBuffer.Count - 1; i++)
+            {
+                for (int j = 0; j < 6; j++)
+                {
+                    int nextIndex = (j + 1) % 6;
+
+                    AddVertex(ref MeshedWell, addedVectors, cuts[i + 1, j]);
+                    addedVectors += GlobalConsts.PerVertexVectors;
+                    AddVertex(ref MeshedWell, addedVectors, cuts[i, j]);
+                    addedVectors += GlobalConsts.PerVertexVectors;
+                    AddVertex(ref MeshedWell, addedVectors, cuts[i + 1, nextIndex]);
+                    addedVectors += GlobalConsts.PerVertexVectors;
+
+                    AddVertex(ref MeshedWell, addedVectors, cuts[i + 1, nextIndex]);
+                    addedVectors += GlobalConsts.PerVertexVectors;
+                    AddVertex(ref MeshedWell, addedVectors, cuts[i, j]);
+                    addedVectors += GlobalConsts.PerVertexVectors;
+                    AddVertex(ref MeshedWell, addedVectors, cuts[i, nextIndex]);
+                    addedVectors += GlobalConsts.PerVertexVectors;
+                }
+            }
+            MeshedWellBuffer = Buffer.Create(Program.GetDevice(), BindFlags.VertexBuffer, MeshedWell);
+            MeshedWellVerticesBuffer = new VertexBufferBinding(MeshedWellBuffer, Utilities.SizeOf<Vector4>() * GlobalConsts.PerVertexVectors, 0);
         }
 
         private static void AddVertex(ref Vector4[] array, int index, Vector4 toAdd)
         {
             array[index + GlobalConsts.VertexPositionOffset] = toAdd;
             array[index + GlobalConsts.VertexColorOffset] = Vector4.One;
-            array[index + GlobalConsts.VertexNormalOffset] = Vector4.UnitZ * -1;
+            array[index + GlobalConsts.VertexNormalOffset] = Vector4.UnitY;
         }
 
         public static void Draw(GlobalConsts.ShaderType shaderType)
@@ -259,6 +342,26 @@ namespace LayerSlicer
 
         public static void DrawWell(GlobalConsts.ShaderType shaderType)
         {
+            switch (shaderType)
+            {
+            case GlobalConsts.ShaderType.Toon:
+            case GlobalConsts.ShaderType.Strict:
+            case GlobalConsts.ShaderType.Phong:
+                {
+                    _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
+                    _deviceContext.InputAssembler.SetVertexBuffers(0, MeshedWellVerticesBuffer);
+                    if (GlobalGrid.ShowBorders)
+                    {
+                        //SwitchToBound();
+                        //_deviceContext.Draw(GlobalSurface.Size[0] * GlobalSurface.Size[1], 0);
+                        //SwitchBack();
+                    }
+
+                    _deviceContext.Draw(MeshedWell.Length, 0);
+                    break;
+                }
+            }
+            /*
             GlobalShaders.SelectFullOverlap();
             _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
             _deviceContext.InputAssembler.SetVertexBuffers(0, WellLinesVerticesBuffer);
@@ -271,6 +374,7 @@ namespace LayerSlicer
             }
 
             _deviceContext.Draw(Well.Length, 0);
+            */
         }
     }
 }

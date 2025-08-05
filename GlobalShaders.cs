@@ -4,6 +4,7 @@ using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using static LayerSlicer.GlobalConsts;
 using Buffer = SharpDX.Direct3D11.Buffer;
@@ -205,7 +206,7 @@ namespace LayerSlicer
             {
             case DataType.Grid:
                     {
-                        UpdateShader();
+                        UdpateShader();
                         switch (_selectedShader)
                         {
                             case PixelShaderType.Toon:
@@ -418,7 +419,7 @@ namespace LayerSlicer
             }
         }
 
-        public static void UpdateShader()
+        public static void UdpateShader()
         {
             switch (_selectedShader)
             {

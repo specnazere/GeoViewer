@@ -40,7 +40,7 @@ namespace LayerSlicer
 
         public const int ScrollingSensitivity = -15; // Negative to invert direction
 
-        public static readonly Vector3 StandartCameraPostion = new(0, 0, -5000);
+        public static readonly Vector3 StandartCameraPostion = new(0, 0, -5);
 
         // Crutch to remove
         public static readonly Vector2 Windows10MainFormPosition = new(8f, 31f);

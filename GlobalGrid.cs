@@ -1,5 +1,7 @@
 ﻿using SharpDX;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.JavaScript;
+using System.Runtime.Intrinsics.X86;
 
 namespace LayerSlicer
 {
@@ -51,6 +53,7 @@ namespace LayerSlicer
         public static bool ShowBorders = true;
         public static Vector2[] RealLocationCorners;
         public static Vector3[] GridCorners = new Vector3[2];
+        public static Matrix ToLocalTransformation;
 
         public static unsafe void ReadGridFile(string path)
         {
@@ -107,6 +110,28 @@ namespace LayerSlicer
 
                 GridCorners[0] = generalInfo[0, 0, 0].Position + generalInfo[0, 0, 0].Scale;
                 GridCorners[1] = generalInfo[SizesXYZ[0] - 1, SizesXYZ[1] - 1, SizesXYZ[2] - 1].Position - generalInfo[SizesXYZ[0] - 1, SizesXYZ[1] - 1, SizesXYZ[2] - 1].Scale;
+
+                float max = float.MinValue;
+                for (int i = 0; i < 2; i++)
+                {
+                    for (int j = 0; j < 3; j++)
+                    {
+                        max = float.Max(max, float.Abs(GridCorners[i][j]));
+                    }
+                }
+
+                ToLocalTransformation = Matrix.Scaling(1/max);
+
+                for (int x = 0; x < SizesXYZ[0]; x += 1)
+                {
+                    for (int y = 0; y < SizesXYZ[1]; y += 1)
+                    {
+                        for (int z = 0; z < SizesXYZ[2]; z += 1)
+                        {
+                            GridRenderMatrices[x, y, z] *= ToLocalTransformation;
+                        }
+                    }
+                }
             }
             return;
         }

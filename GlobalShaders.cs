@@ -274,7 +274,7 @@ namespace LayerSlicer
                 break;
             case DataType.Surface:
                     SelectFullOverlap();
-                    UpdateForSubModel(Matrix.Identity);
+                    UpdateForSubModel(GlobalSurface.ToLocalTransformation);
                     if (true)
                     {
                         switch (_selectedShader)
@@ -312,7 +312,7 @@ namespace LayerSlicer
                         */
                     }
                     SelectNoneOverlap();
-                    UpdateForSubModel(Matrix.Identity);
+                    UpdateForSubModel(GlobalSurface.ToLocalTransformation);
                     if (true)
                     {
                         switch (_selectedShader)

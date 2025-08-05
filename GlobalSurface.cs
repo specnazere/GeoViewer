@@ -4,6 +4,7 @@ using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using System;
 using System.Drawing;
+using System.Drawing.Printing;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
@@ -45,6 +46,9 @@ namespace LayerSlicer
 
         public static Vector4 MidColor = new(0.6f, 0.3f, 0f, 1f);
         public static float MidHeight = 1600;
+
+        public static Matrix ToLocalTransformation;
+        public static float Scale = float.MinValue;
 
         static GlobalSurface()
         {
@@ -212,6 +216,15 @@ namespace LayerSlicer
                 //MeshBuffer = Buffer.Create(Program.GetDevice(), BindFlags.VertexBuffer, RenderMesh);
                 SurfaceBuffer = Buffer.Create(Program.GetDevice(), BindFlags.VertexBuffer, RenderSurface);
                 SurfaceVerticesBuffer = new VertexBufferBinding(SurfaceBuffer, Utilities.SizeOf<Vector4>() * GlobalConsts.PerVertexVectors, 0);
+
+                for (int i = 0; i < 2; i++)
+                {
+                    for (int j = 0; j < 2; j++)
+                    {
+                        Scale = float.Max(float.Abs(SurfaceCorners[i][j]), Scale);
+                    }
+                }
+                ToLocalTransformation = Matrix.Scaling(1 / Scale);
             }
         }
 
@@ -313,6 +326,9 @@ namespace LayerSlicer
             }
             MeshedWellBuffer = Buffer.Create(Program.GetDevice(), BindFlags.VertexBuffer, MeshedWell);
             MeshedWellVerticesBuffer = new VertexBufferBinding(MeshedWellBuffer, Utilities.SizeOf<Vector4>() * GlobalConsts.PerVertexVectors, 0);
+
+            Scale = float.Max(float.Abs(pointsBuffer[0].Y), float.Abs(pointsBuffer[pointsBuffer.Count - 1].Y));
+            ToLocalTransformation = Matrix.Scaling(1 / Scale);
         }
 
         public static void DrawSurface(GlobalConsts.PixelShaderType shaderType)

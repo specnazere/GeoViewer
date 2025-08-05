@@ -70,7 +70,7 @@ namespace LayerSlicer
 
         private static PixelShader _toonShader;
         private static PixelShader _phongShader;
-        private static PixelShader _meshShader;
+        private static PixelShader _strictShader;
 
         private static VertexColorOverlapShaderInput _lastVSInput;
 
@@ -102,7 +102,7 @@ namespace LayerSlicer
             _phongShader = new PixelShader(_device, phongPixelShaderByteCode);
 
             var meshPixelShaderByteCode = ShaderBytecode.CompileFromFile("Shaders/Pixel/meshShader.fx", "PS_Mesh", "ps_4_0");
-            _meshShader = new PixelShader(_device, meshPixelShaderByteCode);
+            _strictShader = new PixelShader(_device, meshPixelShaderByteCode);
 
             var signature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
 
@@ -165,13 +165,13 @@ namespace LayerSlicer
         public static void SelectStrictPixelShader()
         {
             _selectedShader = PixelShaderType.Strict;
-            _deviceContext.PixelShader.Set(_meshShader);
+            _deviceContext.PixelShader.Set(_strictShader);
         }
 
         public static void SelectMeshPixelShader()
         {
             _selectedShader = PixelShaderType.Mesh;
-            _deviceContext.PixelShader.Set(_meshShader);
+            _deviceContext.PixelShader.Set(_strictShader);
         }
 
         public static void SelectNoneOverlap()
@@ -205,6 +205,7 @@ namespace LayerSlicer
             {
             case DataType.Grid:
                     {
+                        UpdateShader();
                         switch (_selectedShader)
                         {
                             case PixelShaderType.Toon:
@@ -245,7 +246,7 @@ namespace LayerSlicer
                                     _deviceContext.UpdateSubresource(ref _lastVSInput, _vertexConstsBuffer);
                                     _deviceContext.InputAssembler.PrimitiveTopology = PrimitiveTopology.LineList;
                                     _deviceContext.InputAssembler.SetVertexBuffers(0, _bufferBindings[2]);
-                                    _deviceContext.PixelShader.Set(_meshShader);
+                                    _deviceContext.PixelShader.Set(_strictShader);
 
                                     for (int x = 0; x < GlobalGrid.SizesXYZ[0]; x += 1)
                                     {
@@ -414,6 +415,17 @@ namespace LayerSlicer
                     ExternalOverlapingColor.W = 1f;
                     _lastVSInput.OverlapColor = ExternalOverlapingColor;
                     break;
+            }
+        }
+
+        public static void UpdateShader()
+        {
+            switch (_selectedShader)
+            {
+                case PixelShaderType.Toon: _deviceContext.PixelShader.Set(_toonShader); break;
+                case PixelShaderType.Phong: _deviceContext.PixelShader.Set(_phongShader); break;
+                case PixelShaderType.Mesh: _deviceContext.PixelShader.Set(_strictShader); break;
+                case PixelShaderType.Strict: _deviceContext.PixelShader.Set(_strictShader); break;
             }
         }
     }

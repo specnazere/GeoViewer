@@ -73,7 +73,7 @@ namespace LayerSlicer
         private static PixelShader _phongShader;
         private static PixelShader _strictShader;
 
-        private static VertexColorOverlapShaderInput _lastVSInput;
+        private static VertexColorOverlapShaderInput _lastVSInput = new();
 
         private static PixelShaderType _selectedShader;
         private static OverlapType _selectedOverlap;
@@ -343,12 +343,9 @@ namespace LayerSlicer
 
         public static void UpdateBuffers()
         {
-            var _lastVSInput = new VertexColorOverlapShaderInput()
-            {
-                WorldViewProj = GlobalModel.Matrix * GlobalCamera.GetMatrix(),
-                ModelRotationTransformation = GlobalModel.GetRotationMatrix(),
-                ModelFullTransformation = GlobalModel.Matrix,
-            };
+            _lastVSInput.WorldViewProj = GlobalModel.Matrix * GlobalCamera.GetMatrix();
+            _lastVSInput.ModelRotationTransformation = GlobalModel.GetRotationMatrix();
+            _lastVSInput.ModelFullTransformation = GlobalModel.Matrix;
 
             _lastVSInput.WorldViewProj.Transpose();
             _lastVSInput.ModelRotationTransformation.Transpose();

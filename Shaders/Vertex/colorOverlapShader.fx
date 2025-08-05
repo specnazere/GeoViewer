@@ -18,8 +18,8 @@ struct PS_IN
 {
     float4 pos : SV_POSITION;
     float4 col : COLOR;
-    float4 nor : NORMAL;
     float4 worldPos : TEXCOORD0; // Мировые координаты вершины
+    float3 nor : NORMAL;
 };
 
 PS_IN VS(VS_IN input)
@@ -36,7 +36,7 @@ PS_IN VS(VS_IN input)
     }
     output.pos = mul(input.pos, WorldViewProj);
     output.worldPos = mul(input.pos, ModelFullTransformation); // Переводим в мировые координаты
-    output.nor = input.nor; // Нормаль в мировом пространстве
+    output.nor = mul((float3) input.nor, (float3x3) ModelRotationTransformation); // Нормаль в мировом пространстве
 
     return output;
 }

@@ -1,9 +1,20 @@
-﻿using System.Numerics;
+﻿using LayerSlicer.Lighting;
+using LayerSlicer.Lighting.Structs;
+using SharpDX.DirectInput;
 
 namespace LayerSlicer.Forms
 {
     internal class InteractForm : CollapsiblePanel
     {
+        private PointF[] _stretchTriangle = new PointF[3];
+        private bool _stretching = false;
+        private Point _mouseLoc;
+
+        private CollapsiblePanel _pointLightsContainer;
+        private CollapsiblePanel _directionalLightsContainer;
+
+        private ComboBox _propertyComboBox;
+
         private ScrollBar _scrollBar;
 
         protected int _innerWidth;
@@ -12,7 +23,13 @@ namespace LayerSlicer.Forms
         {
             // Base setup
             Text = "Interact";
-            
+            CalculateSretchTriangle();
+
+            _header.Paint += (sender, e) => OnPaint(e);
+            _header.MouseDown += OnMouseDown;
+            _header.MouseUp += OnMouseUp;
+            _header.MouseMove += OnMouseMove;
+
             // Scroll bar setup
             _scrollBar = new ScrollBar()
             {
@@ -77,12 +94,28 @@ namespace LayerSlicer.Forms
                     var ControlInfoLabel = new SelfStretchingLabel();
                     SetupLabel(ControlInfoLabel);
                     ControlInfoLabel.Text =
-                        "\"F\" для переключения между режимами управления" + 
+                        "\"F\" для переключения между режимами управления" +
                         Environment.NewLine +
                         "\"R\" для восстановления изначального состояния сцены " +
                             "(положение, поворот и поле зрения камеры, положение, " +
-                            "поворот и масштаб модели)";
-                    HotkeysInfoPanel.Add(ControlInfoLabel);
+                            "поворот и масштаб модели)" +
+                        Environment.NewLine +
+                        "\"ESC\" для завершения работы программы " +
+                        Environment.NewLine +
+                        "\"ESC/ENTER\" при наборе значений в текстовые поля " +
+                            "для завершения редактирования ";
+                HotkeysInfoPanel.Add(ControlInfoLabel);
+                }
+
+                var StretchInfoPanel = new CollapsiblePanel("Растягивание панели");
+                ControlInfoPanel.Add(StretchInfoPanel);
+                {
+                    var ControlInfoLabel = new SelfStretchingLabel();
+                    SetupLabel(ControlInfoLabel);
+                    ControlInfoLabel.Text =
+                        "Ширина интерактивной панели может быть изменена " +
+                            "путём перемещения белого уголка справа сверху";
+                    StretchInfoPanel.Add(ControlInfoLabel);
                 }
 
                 var CameraControlModesInfoPanel = new CollapsiblePanel("Справка по камере");
@@ -95,7 +128,7 @@ namespace LayerSlicer.Forms
                         SetupLabel(FreeCameraControlText);
                         FreeCameraControlText.Text =
                             "WASD для пермещения вперёд, влево, вправо и назад " +
-                                "соответственно" +
+                                "соответственно. QE для перемещения вверх и вниз соответсвенно" +
                                 Environment.NewLine +
                             "Прокрутить колёсико для изменения поля зрения";
                         FreeCameraControlPanel.Add(FreeCameraControlText);
@@ -172,28 +205,28 @@ namespace LayerSlicer.Forms
                             PositionControlSliders.Reset();
 
                             bool positionChanging = false;
-                            PositionControlSliders.Sliders[0].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalModel.SetPosition(
-                                    PositionControlSliders.Sliders[0].Value, null, null);
+                                    PositionControlSliders.SliderWraps[0].Value, null, null);
                                 positionChanging = false;
                             };
-                            PositionControlSliders.Sliders[1].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalModel.SetPosition(null, 
-                                    PositionControlSliders.Sliders[1].Value, null);
+                                    PositionControlSliders.SliderWraps[1].Value, null);
                                 positionChanging = false;
                             };
-                            PositionControlSliders.Sliders[2].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalModel.SetPosition(null, null, 
-                                    PositionControlSliders.Sliders[2].Value);
+                                    PositionControlSliders.SliderWraps[2].Value);
                                 positionChanging = false;
                             };
 
@@ -201,9 +234,9 @@ namespace LayerSlicer.Forms
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
-                                PositionControlSliders.Sliders[0].Value = GlobalModel.Position.X;
-                                PositionControlSliders.Sliders[1].Value = GlobalModel.Position.Y;
-                                PositionControlSliders.Sliders[2].Value = GlobalModel.Position.Z;
+                                PositionControlSliders.SliderWraps[0].Value = GlobalModel.Position.X;
+                                PositionControlSliders.SliderWraps[1].Value = GlobalModel.Position.Y;
+                                PositionControlSliders.SliderWraps[2].Value = GlobalModel.Position.Z;
                                 positionChanging = false;
                             };
                         }
@@ -231,30 +264,30 @@ namespace LayerSlicer.Forms
                             RotationControlSliders.Reset();
 
                             bool rotationChanging = false;
-                            RotationControlSliders.Sliders[0].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalModel.SetRotation(
-                                    RotationControlSliders.Sliders[0].Value
+                                    RotationControlSliders.SliderWraps[0].Value
                                         * GlobalConsts.DegreesToRadians, null, null);
                                 rotationChanging = false;
                             };
-                            RotationControlSliders.Sliders[1].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalModel.SetRotation(null, null,
-                                    RotationControlSliders.Sliders[1].Value
+                                    RotationControlSliders.SliderWraps[1].Value
                                         * GlobalConsts.DegreesToRadians);
                                 rotationChanging = false;
                             };
-                            RotationControlSliders.Sliders[2].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalModel.SetRotation(null,
-                                    RotationControlSliders.Sliders[2].Value
+                                    RotationControlSliders.SliderWraps[2].Value
                                         * GlobalConsts.DegreesToRadians, null);
                                 rotationChanging = false;
                             };
@@ -263,9 +296,9 @@ namespace LayerSlicer.Forms
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
-                                RotationControlSliders.Sliders[0].Value = GlobalModel.Rotation.X;
-                                RotationControlSliders.Sliders[1].Value = GlobalModel.Rotation.Y;
-                                RotationControlSliders.Sliders[2].Value = GlobalModel.Rotation.Z;
+                                RotationControlSliders.SliderWraps[0].Value = GlobalModel.Rotation.X;
+                                RotationControlSliders.SliderWraps[1].Value = GlobalModel.Rotation.Y;
+                                RotationControlSliders.SliderWraps[2].Value = GlobalModel.Rotation.Z;
                                 rotationChanging = false;
                             };
                         }
@@ -293,28 +326,28 @@ namespace LayerSlicer.Forms
                             ScaleControlSliders.Reset();
 
                             bool scaleChanging = false;
-                            ScaleControlSliders.Sliders[0].ValueChanged += (sender, e) =>
+                            ScaleControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
                             {
                                 if (scaleChanging) return;
                                 scaleChanging = true;
                                 GlobalModel.SetScale(
-                                    ScaleControlSliders.Sliders[0].Value, null, null);
+                                    ScaleControlSliders.SliderWraps[0].Value, null, null);
                                 scaleChanging = false;
                             };
-                            ScaleControlSliders.Sliders[1].ValueChanged += (sender, e) =>
+                            ScaleControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
                             {
                                 if (scaleChanging) return;
                                 scaleChanging = true;
                                 GlobalModel.SetScale(null, 
-                                    ScaleControlSliders.Sliders[1].Value, null);
+                                    ScaleControlSliders.SliderWraps[1].Value, null);
                                 scaleChanging = false;
                             };
-                            ScaleControlSliders.Sliders[2].ValueChanged += (sender, e) =>
+                            ScaleControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
                             {
                                 if (scaleChanging) return;
                                 scaleChanging = true;
                                 GlobalModel.SetScale(null, null, 
-                                    ScaleControlSliders.Sliders[2].Value);
+                                    ScaleControlSliders.SliderWraps[2].Value);
                                 scaleChanging = false;
                             };
 
@@ -322,9 +355,9 @@ namespace LayerSlicer.Forms
                             {
                                 if (scaleChanging) return;
                                 scaleChanging = true;
-                                ScaleControlSliders.Sliders[0].Value = GlobalModel.Scale.X;
-                                ScaleControlSliders.Sliders[1].Value = GlobalModel.Scale.Y;
-                                ScaleControlSliders.Sliders[2].Value = GlobalModel.Scale.Z;
+                                ScaleControlSliders.SliderWraps[0].Value = GlobalModel.Scale.X;
+                                ScaleControlSliders.SliderWraps[1].Value = GlobalModel.Scale.Y;
+                                ScaleControlSliders.SliderWraps[2].Value = GlobalModel.Scale.Z;
                                 scaleChanging = false;
                             };
                         }
@@ -352,35 +385,35 @@ namespace LayerSlicer.Forms
                             Maximum = 50,
                         };
 
-                        PositionControlSliders.Sliders[2].SetReset = -5;
+                        PositionControlSliders.SliderWraps[2].SetReset = -5;
                         PositionControlSliders.Reset();
                         ModelPositionControlPanel.Add(PositionControlSliders);
                         {
                             bool positionChanging = false;
-                            PositionControlSliders.Sliders[0].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalCamera.GlobalShift(
-                                    PositionControlSliders.Sliders[0].Value -
+                                    PositionControlSliders.SliderWraps[0].Value -
                                     GlobalCamera.Position.X, 0, 0);
                                 positionChanging = false;
                             };
-                            PositionControlSliders.Sliders[1].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalCamera.GlobalShift(0,
-                                    PositionControlSliders.Sliders[1].Value -
+                                    PositionControlSliders.SliderWraps[1].Value -
                                     GlobalCamera.Position.Y, 0);
                                 positionChanging = false;
                             };
-                            PositionControlSliders.Sliders[2].ValueChanged += (sender, e) =>
+                            PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
                                 GlobalCamera.GlobalShift(0, 0,
-                                    PositionControlSliders.Sliders[2].Value -
+                                    PositionControlSliders.SliderWraps[2].Value -
                                     GlobalCamera.Position.Z);
                                 positionChanging = false;
                             };
@@ -389,9 +422,9 @@ namespace LayerSlicer.Forms
                             {
                                 if (positionChanging) return;
                                 positionChanging = true;
-                                PositionControlSliders.Sliders[0].Value = GlobalCamera.Position.X;
-                                PositionControlSliders.Sliders[1].Value = GlobalCamera.Position.Y;
-                                PositionControlSliders.Sliders[2].Value = GlobalCamera.Position.Z;
+                                PositionControlSliders.SliderWraps[0].Value = GlobalCamera.Position.X;
+                                PositionControlSliders.SliderWraps[1].Value = GlobalCamera.Position.Y;
+                                PositionControlSliders.SliderWraps[2].Value = GlobalCamera.Position.Z;
                                 positionChanging = false;
                             };
                         }
@@ -415,39 +448,41 @@ namespace LayerSlicer.Forms
                             Minimum = -180,
                             Maximum = 180,
                         };
-                        RotationControlSliders.Sliders[0].Maximum =  GlobalConsts.PitchLimit / GlobalConsts.DegreesToRadians;
-                        RotationControlSliders.Sliders[0].Minimum = -GlobalConsts.PitchLimit / GlobalConsts.DegreesToRadians;
+                        RotationControlSliders.SliderWraps[0].Maximum =
+                            GlobalConsts.PitchLimit / GlobalConsts.DegreesToRadians;
+                        RotationControlSliders.SliderWraps[0].Minimum = 
+                           -GlobalConsts.PitchLimit / GlobalConsts.DegreesToRadians;
                         ModelRotationControlPanel.Add(RotationControlSliders);
                         RotationControlSliders.Reset();
                         {
 
                             bool rotationChanging = false;
-                            RotationControlSliders.Sliders[0].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalCamera.LocalRotate(
-                                    RotationControlSliders.Sliders[0].Value * 
+                                    RotationControlSliders.SliderWraps[0].Value * 
                                     GlobalConsts.DegreesToRadians -
                                     GlobalCamera.Rotation.X, 0 , 0);
                                 rotationChanging = false;
                             };
-                            RotationControlSliders.Sliders[1].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalCamera.LocalRotate(0,
-                                    RotationControlSliders.Sliders[1].Value * 
+                                    RotationControlSliders.SliderWraps[1].Value * 
                                     GlobalConsts.DegreesToRadians -
                                     GlobalCamera.Rotation.Y, 0);
                                 rotationChanging = false;
                             };
-                            RotationControlSliders.Sliders[2].ValueChanged += (sender, e) =>
+                            RotationControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
                                 GlobalCamera.LocalRotate(0, 0,
-                                    RotationControlSliders.Sliders[2].Value * 
+                                    RotationControlSliders.SliderWraps[2].Value * 
                                     GlobalConsts.DegreesToRadians -
                                     GlobalCamera.Rotation.Z);
                                 rotationChanging = false;
@@ -457,18 +492,1596 @@ namespace LayerSlicer.Forms
                             {
                                 if (rotationChanging) return;
                                 rotationChanging = true;
-                                RotationControlSliders.Sliders[0].Value = GlobalCamera.Rotation.X / GlobalConsts.DegreesToRadians;
-                                RotationControlSliders.Sliders[1].Value = GlobalCamera.Rotation.Y / GlobalConsts.DegreesToRadians;
-                                RotationControlSliders.Sliders[2].Value = GlobalCamera.Rotation.Z / GlobalConsts.DegreesToRadians;
+                                RotationControlSliders.SliderWraps[0].Value = 
+                                    GlobalCamera.Rotation.X / GlobalConsts.DegreesToRadians;
+                                RotationControlSliders.SliderWraps[1].Value = 
+                                    GlobalCamera.Rotation.Y / GlobalConsts.DegreesToRadians;
+                                RotationControlSliders.SliderWraps[2].Value = 
+                                    GlobalCamera.Rotation.Z / GlobalConsts.DegreesToRadians;
                                 rotationChanging = false;
+                            };
+                        }
+                    }
+
+                    var FovControlPanel = new CollapsiblePanel("Поле зрения");
+                    CameraControlPanel.Add(FovControlPanel);
+                    {
+                        var FovControlLabel = new SelfStretchingLabel();
+                        FovControlPanel.Add(FovControlLabel);
+                        {
+                            SetupLabel(FovControlLabel);
+                            FovControlLabel.Text =
+                                "Слайдер для регулирования поля зрения камеры в градусах";
+                        }
+
+                        var FovControlSlider = new SliderWrap()
+                        {
+                            IsVerticalLayout = false,
+                            SetReset = (float)Math.Round(GlobalConsts.FovBaseValue / GlobalConsts.DegreesToRadians),
+                            Minimum = (float)Math.Round(GlobalConsts.FovDownLimit / GlobalConsts.DegreesToRadians),
+                            Maximum = (float)Math.Round(GlobalConsts.FovUpperLimit / GlobalConsts.DegreesToRadians),
+                        };
+                        bool fovChanging = false;
+                        FovControlPanel.Add(FovControlSlider);
+                        {
+                            FovControlSlider.ValueChanged += (sender, e) =>
+                            {
+                                if (fovChanging) return;
+                                fovChanging = true;
+                                GlobalCamera.Fov = FovControlSlider.Value * GlobalConsts.DegreesToRadians;
+                                fovChanging = false;
+                            };
+
+                            GlobalCamera.FovChanged += (sender, e) =>
+                            {
+                                if (fovChanging) return;
+                                fovChanging = true;
+                                FovControlSlider.Value = GlobalCamera.Fov / GlobalConsts.DegreesToRadians;
+                                fovChanging = false;
                             };
                         }
                     }
                 }
             }
-            OnSizeChanged(null, EventArgs.Empty);
 
+            var LightingControlPanel = new CollapsiblePanel("Контроль освещения");
+            Add(LightingControlPanel);
+            {
+                var PointLightsControlPanel = new CollapsiblePanel("Точечные источники");
+                _pointLightsContainer = PointLightsControlPanel;
+                LightingControlPanel.Add(PointLightsControlPanel);
+                {
+                    var PointLightsCreationPanel = new CollapsiblePanel("Новый точечный источник");
+                    PointLightsControlPanel.Add(PointLightsCreationPanel);
+                    {
+                        var AddableLight = new PointLightObject
+                        {
+                            Position = new SharpDX.Vector4(0, 0, 0, 1),
+                            Color = new SharpDX.Vector4(1, 1, 1, 100) // Белый цвет по умолчанию
+                        };
+                        GlobalLighting.AddPointLight(AddableLight, "Demonstrative");
+
+                        SharpDX.Vector4 savedColor = AddableLight.Color;
+                        PointLightsCreationPanel.Toggled += (sender, e) =>
+                        {
+                            if (PointLightsCreationPanel.IsCollapsed())
+                            {
+                                savedColor = AddableLight.Color;
+                                AddableLight.Color = SharpDX.Vector4.Zero;
+                            }
+                            else
+                            {
+                                AddableLight.Color = savedColor;
+                            }
+                        };
+
+                        var PositionControlLabel = new SelfStretchingLabel();
+                        PointLightsCreationPanel.Add(PositionControlLabel);
+                        {
+                            SetupLabel(PositionControlLabel);
+                            PositionControlLabel.Text =
+                                "Слайдеры для размещения вдоль осей X, Y и Z соотвественно";
+                        }
+
+                        var PositionControlSliders = new SliderGroup()
+                        {
+                            SetReset = 0,
+                            Minimum = -50,
+                            Maximum = 50,
+                            Height = 200,
+                        };
+                        PointLightsCreationPanel.Add(PositionControlSliders);
+                        {
+                            PositionControlSliders.Reset();
+
+                            SharpDX.Vector4 bufferPosition = SharpDX.Vector4.Zero;
+                            PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferPosition = AddableLight.Position;
+                                bufferPosition.X = PositionControlSliders.SliderWraps[0].Value;
+                                AddableLight.Position = bufferPosition;
+                            };
+                            PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferPosition = AddableLight.Position;
+                                bufferPosition.Y = PositionControlSliders.SliderWraps[1].Value;
+                                AddableLight.Position = bufferPosition;
+                            };
+                            PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferPosition = AddableLight.Position;
+                                bufferPosition.Z = PositionControlSliders.SliderWraps[2].Value;
+                                AddableLight.Position = bufferPosition;
+                            };
+                        }
+
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        PointLightsCreationPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета света по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        PointLightsCreationPanel.Add(ColorControlSliders);
+                        ColorControlSliders.Reset();
+                        {
+                            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                        }
+
+                        var IntencyControlLabel = new SelfStretchingLabel();
+                        PointLightsCreationPanel.Add(IntencyControlLabel);
+                        {
+                            SetupLabel(IntencyControlLabel);
+                            IntencyControlLabel.Text =
+                                "Слайдер для изменения интенсивности освещения";
+                        }
+
+                        var IntencyControlSlider = new SliderWrap()
+                        {
+                            SetReset = 10,
+                            Minimum = 0,
+                            Maximum = 1000,
+                            IsVerticalLayout = false,
+                        };
+                        PointLightsCreationPanel.Add(IntencyControlSlider);
+                        IntencyControlSlider.Reset();
+                        {
+                            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+                            IntencyControlSlider.ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.W = IntencyControlSlider.Value;
+                                AddableLight.Color = bufferColor;
+                            };
+                        }
+
+                        var LightName = new TextBox()
+                        {
+                            TextAlign = HorizontalAlignment.Left,
+                            Font = GlobalConsts.BasicFont,
+                            Text = "New point light name",
+                            Dock = DockStyle.None,
+                        };
+                        LightName.GotFocus += (s, e) =>
+                        {
+                            UserEventRouter.IsTexting = true;
+                        };
+                        LightName.LostFocus += (s, e) =>
+                        {
+                            UserEventRouter.IsTexting = false;
+                        };
+                        LightName.KeyUp += (s, e) =>
+                        {
+                            if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Escape)
+                            {
+                                MainWindow.GetRenderForm().ActiveControl = null;
+                            }
+                        };
+                        PointLightsCreationPanel.Add(LightName);
+
+                        var NewLightButton = new Button()
+                        {
+                            FlatStyle = FlatStyle.Flat,
+                            TextAlign = ContentAlignment.MiddleCenter,
+                            BackColor = Color.White,
+                            ForeColor = Color.Black,
+                            Text = "NewLight",
+                            Font = GlobalConsts.BasicFont,
+                            Dock = DockStyle.None,
+                            Height = 26,
+                        };
+                        PointLightsCreationPanel.Add(NewLightButton);
+                        NewLightButton.Click += (sedner, e) =>
+                        {
+                            var coppiedPointLight = new PointLightObject
+                            {
+                                Color = AddableLight.Color,
+                                Position = AddableLight.Position,
+                            };
+                            GlobalLighting.AddPointLight(coppiedPointLight, LightName.Text);
+                            ConnectPointLight(coppiedPointLight, LightName.Text);
+                        };
+                    }
+                }
+
+                var DirectionalLightsControlPanel = new CollapsiblePanel("Направленные источники");
+                _directionalLightsContainer = DirectionalLightsControlPanel;
+                LightingControlPanel.Add(DirectionalLightsControlPanel);
+                {
+                    var DirectionalLightsCreationPanel = new CollapsiblePanel("Новый направленный источник");
+                    DirectionalLightsControlPanel.Add(DirectionalLightsCreationPanel);
+                    {
+                        var AddableLight = new DirectionalLightObject
+                        {
+                            Direction = new SharpDX.Vector4(0, 0, 0, 1),
+                            Color = new SharpDX.Vector4(1, 1, 1, 100) // Белый цвет по умолчанию
+                        };
+                        GlobalLighting.AddDirectionalLight(AddableLight, "Demonstrative");
+
+                        SharpDX.Vector4 savedColor = AddableLight.Color;
+                        DirectionalLightsCreationPanel.Toggled += (sender, e) =>
+                        {
+                            if (DirectionalLightsCreationPanel.IsCollapsed())
+                            {
+                                savedColor = AddableLight.Color;
+                                AddableLight.Color = SharpDX.Vector4.Zero;
+                            }
+                            else
+                            {
+                                AddableLight.Color = savedColor;
+                            }
+                        };
+
+                        var PositionControlLabel = new SelfStretchingLabel();
+                        DirectionalLightsCreationPanel.Add(PositionControlLabel);
+                        {
+                            SetupLabel(PositionControlLabel);
+                            PositionControlLabel.Text =
+                                "Слайдеры для управление вектором направления по осям X, Y и Z соотвественно";
+                        }
+
+                        var DirectionControlSliders = new SliderGroup()
+                        {
+                            SetReset = 0,
+                            Minimum = -5,
+                            Maximum = 5 ,
+                            Height = 200,
+                        };
+                        DirectionalLightsCreationPanel.Add(DirectionControlSliders);
+                        {
+                            DirectionControlSliders.Reset();
+
+                            SharpDX.Vector4 bufferDirection = SharpDX.Vector4.Zero;
+                            DirectionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferDirection = AddableLight.Direction;
+                                bufferDirection.X = DirectionControlSliders.SliderWraps[0].Value;
+                                AddableLight.Direction = bufferDirection;
+                            };
+                            DirectionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferDirection = AddableLight.Direction;
+                                bufferDirection.Y = DirectionControlSliders.SliderWraps[1].Value;
+                                AddableLight.Direction = bufferDirection;
+                            };
+                            DirectionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferDirection = AddableLight.Direction;
+                                bufferDirection.Z = DirectionControlSliders.SliderWraps[2].Value;
+                                AddableLight.Direction = bufferDirection;
+                            };
+                        }
+
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        DirectionalLightsCreationPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета света по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        DirectionalLightsCreationPanel.Add(ColorControlSliders);
+                        ColorControlSliders.Reset();
+                        {
+                            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                AddableLight.Color = bufferColor;
+                            };
+                        }
+
+                        var IntencyControlLabel = new SelfStretchingLabel();
+                        DirectionalLightsCreationPanel.Add(IntencyControlLabel);
+                        {
+                            SetupLabel(IntencyControlLabel);
+                            IntencyControlLabel.Text =
+                                "Слайдер для изменения интенсивности освещения";
+                        }
+
+                        var IntencyControlSlider = new SliderWrap()
+                        {
+                            SetReset = 1,
+                            Minimum = 0,
+                            Maximum = 10,
+                            IsVerticalLayout = false,
+                        };
+                        DirectionalLightsCreationPanel.Add(IntencyControlSlider);
+                        IntencyControlSlider.Reset();
+                        {
+                            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+                            IntencyControlSlider.ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = AddableLight.Color;
+                                bufferColor.W = IntencyControlSlider.Value;
+                                AddableLight.Color = bufferColor;
+                            };
+                        }
+
+                        var LightName = new TextBox()
+                        {
+                            TextAlign = HorizontalAlignment.Left,
+                            Font = GlobalConsts.BasicFont,
+                            Text = "New directional light name",
+                            Dock = DockStyle.None,
+                        };
+                        LightName.GotFocus += (s, e) =>
+                        {
+                            UserEventRouter.IsTexting = true;
+                        };
+                        LightName.LostFocus += (s, e) =>
+                        {
+                            UserEventRouter.IsTexting = false;
+                        };
+                        LightName.KeyUp += (s, e) =>
+                        {
+                            if (e.KeyCode == Keys.Enter || e.KeyCode == Keys.Escape)
+                            {
+                                MainWindow.GetRenderForm().ActiveControl = null;
+                            }
+                        };
+                        DirectionalLightsCreationPanel.Add(LightName);
+
+                        var NewLightButton = new Button()
+                        {
+                            FlatStyle = FlatStyle.Flat,
+                            TextAlign = ContentAlignment.MiddleCenter,
+                            BackColor = Color.White,
+                            ForeColor = Color.Black,
+                            Text = "NewLight",
+                            Font = GlobalConsts.BasicFont,
+                            Dock = DockStyle.None,
+                            Height = 26,
+                        };
+                        DirectionalLightsCreationPanel.Add(NewLightButton);
+                        NewLightButton.Click += (sedner, e) =>
+                        {
+                            var coppiedDirectionalLight = new DirectionalLightObject
+                            {
+                                Color = AddableLight.Color,
+                                Direction = AddableLight.Direction,
+                            };
+                            GlobalLighting.AddDirectionalLight(coppiedDirectionalLight, LightName.Text);
+                            ConnectDirectionalLight(coppiedDirectionalLight, LightName.Text);
+                        };
+                    }
+                }
+
+                var AmbiendLightControlPanel = new CollapsiblePanel("Рассеянный свет");
+                LightingControlPanel.Add(AmbiendLightControlPanel);
+                {
+                    var ColorControlLabel = new SelfStretchingLabel();
+                    AmbiendLightControlPanel.Add(ColorControlLabel);
+                    {
+                        SetupLabel(ColorControlLabel);
+                        ColorControlLabel.Text =
+                            "Слайдеры для изменения цвета рассеянного света по компонентам RGB";
+                    }
+
+                    var ColorControlSliders = new SliderGroup()
+                    {
+                        SetReset = 256,
+                        Minimum = 0,
+                        Maximum = 256,
+                        Height = 200,
+                    };
+                    ColorControlSliders.SliderWraps[0].SetReset = GlobalLighting.AmbiendLighting.X * 256;
+                    ColorControlSliders.SliderWraps[1].SetReset = GlobalLighting.AmbiendLighting.Y * 256;
+                    ColorControlSliders.SliderWraps[2].SetReset = GlobalLighting.AmbiendLighting.Z * 256;
+                    AmbiendLightControlPanel.Add(ColorControlSliders);
+                    ColorControlSliders.Reset();
+                    {
+                        SharpDX.Vector4 bufferLight = SharpDX.Vector4.Zero;
+                        ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                        {
+                            bufferLight = GlobalLighting.AmbiendLighting;
+                            bufferLight.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                            GlobalLighting.AmbiendLighting = bufferLight;
+                        };
+                        ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                        {
+                            bufferLight = GlobalLighting.AmbiendLighting;
+                            bufferLight.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                            GlobalLighting.AmbiendLighting = bufferLight;
+                        };
+                        ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                        {
+                            bufferLight = GlobalLighting.AmbiendLighting;
+                            bufferLight.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                            GlobalLighting.AmbiendLighting = bufferLight;
+                        };
+                    }
+
+
+                    var IntencyControlLabel = new SelfStretchingLabel();
+                    AmbiendLightControlPanel.Add(IntencyControlLabel);
+                    {
+                        SetupLabel(IntencyControlLabel);
+                        IntencyControlLabel.Text =
+                            "Слайдер для изменения интенсивности рассеянного освещения";
+                    }
+
+                    var IntencyControlSlider = new SliderWrap()
+                    {
+                        SetReset = 1,
+                        Minimum = 0,
+                        Maximum = 10,
+                        IsVerticalLayout = false,
+                    };
+                    IntencyControlSlider.SetReset = GlobalLighting.AmbiendLighting.W;
+                    AmbiendLightControlPanel.Add(IntencyControlSlider);
+                    IntencyControlSlider.Reset();
+                    {
+                        SharpDX.Vector4 bufferLight = SharpDX.Vector4.Zero;
+                        IntencyControlSlider.ValueChanged += (sender, e) =>
+                        {
+                            bufferLight = GlobalLighting.AmbiendLighting;
+                            bufferLight.W = IntencyControlSlider.Value;
+                            GlobalLighting.AmbiendLighting = bufferLight;
+                        };
+                    }
+                }
+            }
+
+            var DisplayControlPanel = new CollapsiblePanel("Управление отображением");
+            Add(DisplayControlPanel);
+            {
+                var DataSelectPanel = new CollapsiblePanel("Выбор отрисовываемого объекта");
+                DisplayControlPanel.Add(DataSelectPanel);
+                {
+                    var DataSelectLabel = new SelfStretchingLabel();
+                    DataSelectPanel.Add(DataSelectLabel);
+                    {
+                        SetupLabel(DataSelectLabel);
+                        DataSelectLabel.Text =
+                            "Выбор отрисовываемых данных";
+                    }
+                    var DataSelectComboBox = new ComboBox()
+                    {
+                        Font = GlobalConsts.BasicFont,
+                        FlatStyle = FlatStyle.Flat,
+                        DropDownStyle = ComboBoxStyle.DropDownList,
+                    };
+                    DataSelectPanel.Add(DataSelectComboBox);
+                    {
+                        DataSelectComboBox.Items.Add("Грид");
+                        DataSelectComboBox.Items.Add("Поверхность");
+                        DataSelectComboBox.SelectedIndex = 0;
+
+                        DataSelectComboBox.SelectedIndexChanged += (sender, e) =>
+                        {
+                            switch (DataSelectComboBox.SelectedIndex)
+                            {
+                            case 0:
+                                GlobalShaders.SelectGridData();
+                                break;
+                            case 1:
+                                GlobalShaders.SelectSurfaceData();
+                                break;
+                            }
+                        };
+                    }
+                }
+
+                var ShaderControlPanel = new CollapsiblePanel("Настройки отрисовки");
+                DisplayControlPanel.Add(ShaderControlPanel);
+                {
+                    var ShaderSelectLabel = new SelfStretchingLabel();
+                    ShaderControlPanel.Add(ShaderSelectLabel);
+                    {
+                        SetupLabel(ShaderSelectLabel);
+                        ShaderSelectLabel.Text =
+                            "Выбор типа отрисовки";
+                    }
+                    var ShaderSelectComboBox = new ComboBox()
+                    {
+                        Font = GlobalConsts.BasicFont,
+                        FlatStyle = FlatStyle.Flat,
+                        DropDownStyle = ComboBoxStyle.DropDownList,
+                    };
+                    ShaderControlPanel.Add(ShaderSelectComboBox);
+                    {
+                        ShaderSelectComboBox.Items.Add("Мультяшный вид");
+                        ShaderSelectComboBox.Items.Add("Стандартный вид");
+                        ShaderSelectComboBox.Items.Add("Строгий вид");
+                        ShaderSelectComboBox.Items.Add("Вид сетки");
+                        ShaderSelectComboBox.SelectedIndex = 2;
+
+                        ShaderSelectComboBox.SelectedIndexChanged += (sender, e) =>
+                        {
+                            switch (ShaderSelectComboBox.SelectedIndex)
+                            {
+                            case 0:
+                                GlobalShaders.SelectToonPixelShader();
+                                break;
+                            case 1:
+                                GlobalShaders.SelectPhongPixelShader();
+                                break;
+                            case 2:
+                                GlobalShaders.SelectStrictPixelShader();
+                                break;
+                            case 3:
+                                GlobalShaders.SelectMeshPixelShader();
+                                break;
+                            }
+                        };
+                    }
+
+                    var ColorSelectLabel = new SelfStretchingLabel();
+                    ShaderControlPanel.Add(ColorSelectLabel);
+                    {
+                        SetupLabel(ColorSelectLabel);
+                        ColorSelectLabel.Text =
+                            "Выбор режима окрашивания";
+                    }
+                    var ColorSelectComboBox = new ComboBox()
+                    {
+                        Font = GlobalConsts.BasicFont,
+                        FlatStyle = FlatStyle.Flat,
+                        DropDownStyle = ComboBoxStyle.DropDownList,
+                    };
+                    ShaderControlPanel.Add(ColorSelectComboBox);
+                    {
+                        ColorSelectComboBox.Items.Add("Цвета сторон");
+                        ColorSelectComboBox.Items.Add("Полный цвет");
+                        ColorSelectComboBox.Items.Add("Цвет свойства");
+                        ColorSelectComboBox.SelectedIndex = 2;
+
+                        ColorSelectComboBox.SelectedIndexChanged += (sender, e) =>
+                        {
+                            switch (ColorSelectComboBox.SelectedIndex)
+                            {
+                            case 0:
+                                GlobalShaders.SelectNoneOverlap();
+                                break;
+                            case 1:
+                                GlobalShaders.SelectFullOverlap();
+                                break;
+                            case 2:
+                                GlobalShaders.SelectExternalOverlap();
+                                break;
+                            }
+                        };
+                    }
+                    
+                    // Создаем CheckBox
+                    CheckBox BordersCheckBox = new CheckBox();
+                    BordersCheckBox.Text = "Отображение границ"; // Можно задать текст, если нужно
+                    BordersCheckBox.Font = GlobalConsts.BasicFont;
+                    BordersCheckBox.ForeColor = Color.White;
+                    BordersCheckBox.Checked = true;
+                    ShaderControlPanel.Add(BordersCheckBox);
+                    BordersCheckBox.CheckedChanged += (s, e) =>
+                    {
+                        GlobalGrid.ShowBorders = BordersCheckBox.Checked;
+                    };
+
+                    var ToonShadingControlPanel = new CollapsiblePanel("Настройки мультяшного вида");
+                    ShaderControlPanel.Add(ToonShadingControlPanel);
+                    {
+                        var IntencyControlLabel = new SelfStretchingLabel();
+                        ToonShadingControlPanel.Add(IntencyControlLabel);
+                        {
+                            SetupLabel(IntencyControlLabel);
+                            IntencyControlLabel.Text =
+                                "Слайдер для управления количеством шагов в мультяшном шейдере";
+                        }
+
+                        var IntencyControlSlider = new SliderWrap()
+                        {
+                            SetReset = GlobalLighting.ToonShadingSteps,
+                            Minimum = 0,
+                            Maximum = 32,
+                            IsVerticalLayout = false,
+                            Integer = true,
+                        };
+                        ToonShadingControlPanel.Add(IntencyControlSlider);
+                        IntencyControlSlider.Reset();
+                        {
+                            int BufferSteps = 0;
+                            IntencyControlSlider.ValueChanged += (sender, e) =>
+                            {
+                                BufferSteps = GlobalLighting.ToonShadingSteps;
+                                BufferSteps = (int)IntencyControlSlider.Value;
+                                GlobalLighting.ToonShadingSteps = BufferSteps;
+                            };
+                        }
+                    }
+
+                    var PropertyShadingControlPanel = new CollapsiblePanel("Настройки вида свойств");
+                    ShaderControlPanel.Add(PropertyShadingControlPanel);
+                    {
+                        var PropertySelectLabel = new SelfStretchingLabel();
+                        PropertyShadingControlPanel.Add(PropertySelectLabel);
+                        {
+                            SetupLabel(PropertySelectLabel);
+                            PropertySelectLabel.Text =
+                                "Выбор визуализируемого свойства";
+                        }
+                        _propertyComboBox = new ComboBox()
+                        {
+                            Font = GlobalConsts.BasicFont,
+                            FlatStyle = FlatStyle.Flat,
+                            DropDownStyle = ComboBoxStyle.DropDownList,
+                        };
+                        PropertyShadingControlPanel.Add(_propertyComboBox);
+                        {
+                            _propertyComboBox.SelectedIndexChanged += (sender, e) =>
+                            {
+                                GlobalGrid.SelectedProperty = _propertyComboBox.Text;
+                            };
+                        }
+
+                        var ColorOfMaxPropertyControlPanel = new CollapsiblePanel("Цвет максимальных значений");
+                        PropertyShadingControlPanel.Add(ColorOfMaxPropertyControlPanel);
+                        {
+                            var ColorControlLabel = new SelfStretchingLabel();
+                            ColorOfMaxPropertyControlPanel.Add(ColorControlLabel);
+                            {
+                                SetupLabel(ColorControlLabel);
+                                ColorControlLabel.Text =
+                                    "Слайдеры для изменения цвета с наибольшим свойством по компонентам RGB";
+                            }
+
+                            var ColorControlSliders = new SliderGroup()
+                            {
+                                SetReset = 256,
+                                Minimum = 0,
+                                Maximum = 256,
+                                Height = 200,
+                            };
+                            ColorOfMaxPropertyControlPanel.Add(ColorControlSliders);
+                            {
+                                SharpDX.Vector4 bufferColor = GlobalGrid.PropertyMaxColor;
+
+                                ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                                ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                                ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                                ColorControlSliders.Reset();
+
+                                ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMaxColor;
+                                    bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                    GlobalGrid.PropertyMaxColor = bufferColor;
+                                };
+                                ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMaxColor;
+                                    bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                    GlobalGrid.PropertyMaxColor = bufferColor;
+                                };
+                                ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMaxColor;
+                                    bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                    GlobalGrid.PropertyMaxColor = bufferColor;
+                                };
+                            }
+                        }
+
+                        var ColorOfMinPropertyControlPanel = new CollapsiblePanel("Цвет минимальных значений");
+                        PropertyShadingControlPanel.Add(ColorOfMinPropertyControlPanel);
+                        {
+                            var ColorControlLabel = new SelfStretchingLabel();
+                            ColorOfMinPropertyControlPanel.Add(ColorControlLabel);
+                            {
+                                SetupLabel(ColorControlLabel);
+                                ColorControlLabel.Text =
+                                    "Слайдеры для изменения цвета с наибольшим свойством по компонентам RGB";
+                            }
+
+                            var ColorControlSliders = new SliderGroup()
+                            {
+                                SetReset = 256,
+                                Minimum = 0,
+                                Maximum = 256,
+                                Height = 200,
+                            };
+                            ColorOfMinPropertyControlPanel.Add(ColorControlSliders);
+                            {
+                                SharpDX.Vector4 bufferColor = GlobalGrid.PropertyMinColor;
+
+                                ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                                ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                                ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                                ColorControlSliders.Reset();
+
+                                ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMinColor;
+                                    bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                    GlobalGrid.PropertyMinColor = bufferColor;
+                                };
+                                ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMinColor;
+                                    bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                    GlobalGrid.PropertyMinColor = bufferColor;
+                                };
+                                ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                                {
+                                    bufferColor = GlobalGrid.PropertyMinColor;
+                                    bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                    GlobalGrid.PropertyMinColor = bufferColor;
+                                };
+                            }
+                        }
+                    }
+
+                    var SlicesControlPanel = new CollapsiblePanel("Настройки отображаемых слайсов");
+                    ShaderControlPanel.Add(SlicesControlPanel);
+                    {
+                        // Создаем CheckBox
+                        CheckBox FullGridCheckBox = new CheckBox();
+                        FullGridCheckBox.Text = "Полный грид"; // Можно задать текст, если нужно
+                        FullGridCheckBox.Font = GlobalConsts.BasicFont;
+                        FullGridCheckBox.ForeColor = Color.White;
+                        FullGridCheckBox.Checked = true;
+                        SlicesControlPanel.Add(FullGridCheckBox);
+                        FullGridCheckBox.CheckedChanged += (s, e) =>
+                        {
+                            GlobalGrid.DrawSlices = !FullGridCheckBox.Checked;
+                        };
+
+                        int[] savedSlices = { -1, -1, -1 };
+
+                        // Создаем CheckBox
+                        CheckBox SliceXCheckBox = new CheckBox();
+                        SliceXCheckBox.Text = "Отображать слайс по X"; // Можно задать текст, если нужно
+                        SliceXCheckBox.Font = GlobalConsts.BasicFont;
+                        SliceXCheckBox.ForeColor = Color.White;
+                        SliceXCheckBox.Checked = true;
+                        SlicesControlPanel.Add(SliceXCheckBox);
+                        SliceXCheckBox.CheckedChanged += (s, e) =>
+                        {
+                            if (SliceXCheckBox.Checked)
+                            {
+                                GlobalGrid.DrawableSlices[0] = savedSlices[0];
+                                savedSlices[0] = -1;
+                            }
+                            else
+                            {
+                                savedSlices[0] = GlobalGrid.DrawableSlices[0];
+                                GlobalGrid.DrawableSlices[0] = -1;
+                            }
+                        };
+
+                        // Создаем CheckBox
+                        CheckBox SliceYCheckBox = new CheckBox();
+                        SliceYCheckBox.Text = "Отображать слайс по Y"; // Можно задать текст, если нужно
+                        SliceYCheckBox.Font = GlobalConsts.BasicFont;
+                        SliceYCheckBox.ForeColor = Color.White;
+                        SliceYCheckBox.Checked = true;
+                        SlicesControlPanel.Add(SliceYCheckBox);
+                        SliceYCheckBox.CheckedChanged += (s, e) =>
+                        {
+                            if (SliceYCheckBox.Checked)
+                            {
+                                GlobalGrid.DrawableSlices[1] = savedSlices[1];
+                                savedSlices[1] = -1;
+                            }
+                            else
+                            {
+                                savedSlices[1] = GlobalGrid.DrawableSlices[1];
+                                GlobalGrid.DrawableSlices[1] = -1;
+                            }
+                        };
+
+                        // Создаем CheckBox
+                        CheckBox SliceZCheckBox = new CheckBox();
+                        SliceZCheckBox.Text = "Отображать слайс по Z"; // Можно задать текст, если нужно
+                        SliceZCheckBox.Font = GlobalConsts.BasicFont;
+                        SliceZCheckBox.ForeColor = Color.White;
+                        SliceZCheckBox.Checked = true;
+                        SlicesControlPanel.Add(SliceZCheckBox);
+                        SliceZCheckBox.CheckedChanged += (s, e) =>
+                        {
+                            if (SliceZCheckBox.Checked)
+                            {
+                                GlobalGrid.DrawableSlices[2] = savedSlices[2];
+                                savedSlices[2] = -1;
+                            }
+                            else
+                            {
+                                savedSlices[2] = GlobalGrid.DrawableSlices[2];
+                                GlobalGrid.DrawableSlices[2] = -1;
+                            }
+                        };
+
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        SlicesControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения отображаемых слайсов по XYZ";
+                        }
+
+                        var SelectedSlicesControlSliders = new SliderGroup()
+                        {
+                            SetReset = 1,
+                            Minimum = 1,
+                            Height = 200,
+                            Integer = true,
+                        };
+                        SlicesControlPanel.Add(SelectedSlicesControlSliders);
+                        {
+                            SelectedSlicesControlSliders.SliderWraps[0].Maximum = GlobalGrid.SizesXYZ[0];
+                            SelectedSlicesControlSliders.SliderWraps[1].Maximum = GlobalGrid.SizesXYZ[1];
+                            SelectedSlicesControlSliders.SliderWraps[2].Maximum = GlobalGrid.SizesXYZ[2];
+                            SelectedSlicesControlSliders.Reset();
+
+                            SelectedSlicesControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                if (savedSlices[0] == -1)
+                                {
+                                    GlobalGrid.DrawableSlices[0] = (int)SelectedSlicesControlSliders.SliderWraps[0].Value - 1;
+                                }
+                                else
+                                {
+                                    savedSlices[0] = (int)SelectedSlicesControlSliders.SliderWraps[0].Value - 1;
+                                }
+                            };
+                            SelectedSlicesControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                if (savedSlices[1] == -1)
+                                {
+                                    GlobalGrid.DrawableSlices[1] = GlobalGrid.SizesXYZ[1] - (int)SelectedSlicesControlSliders.SliderWraps[1].Value - 1;
+                                }
+                                else
+                                {
+                                    savedSlices[1] = (int)SelectedSlicesControlSliders.SliderWraps[1].Value - 1;
+                                }
+                            };
+                            SelectedSlicesControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                if (savedSlices[2] == -1)
+                                {
+                                    GlobalGrid.DrawableSlices[2] = (int)SelectedSlicesControlSliders.SliderWraps[2].Value - 1;
+                                }
+                                else
+                                {
+                                    savedSlices[2] = (int)SelectedSlicesControlSliders.SliderWraps[2].Value - 1;
+                                }
+                            };
+                        }
+                    }
+                }
+
+                var ColorControlPanel = new CollapsiblePanel("Настройки цвета");
+                DisplayControlPanel.Add(ColorControlPanel);
+                {
+                    var FrontControlPanel = new CollapsiblePanel("Передняя сторона");
+                    ColorControlPanel.Add(FrontControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        FrontControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        FrontControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.FrontColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.FrontColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.FrontColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.FrontColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.FrontColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.FrontColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.FrontColor = bufferColor;
+                            };
+                        }
+                    }
+
+                    var BackControlPanel = new CollapsiblePanel("Задняя сторона");
+                    ColorControlPanel.Add(BackControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        BackControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        BackControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.BackColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BackColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.BackColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BackColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.BackColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BackColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.BackColor = bufferColor;
+                            };
+                        }
+                    }
+
+                    var TopControlPanel = new CollapsiblePanel("Верхняя сторона");
+                    ColorControlPanel.Add(TopControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        TopControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        TopControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.TopColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.TopColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.TopColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.TopColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.TopColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.TopColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.TopColor = bufferColor;
+                            };
+                        }
+                    }
+
+                    var BottomControlPanel = new CollapsiblePanel("Нижняя сторона");
+                    ColorControlPanel.Add(BottomControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        BottomControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        BottomControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.BottomColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BottomColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.BottomColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BottomColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.BottomColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.BottomColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.BottomColor = bufferColor;
+                            };
+                        }
+                    }
+
+                    var LeftControlPanel = new CollapsiblePanel("Левая сторона");
+                    ColorControlPanel.Add(LeftControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        LeftControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        LeftControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.LeftColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.LeftColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.LeftColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.LeftColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.LeftColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.LeftColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.LeftColor = bufferColor;
+                            };
+                        }
+                    }
+
+                    var RightControlPanel = new CollapsiblePanel("Правая сторона");
+                    ColorControlPanel.Add(RightControlPanel);
+                    {
+                        var ColorControlLabel = new SelfStretchingLabel();
+                        RightControlPanel.Add(ColorControlLabel);
+                        {
+                            SetupLabel(ColorControlLabel);
+                            ColorControlLabel.Text =
+                                "Слайдеры для изменения цвета передней стороны по компонентам RGB";
+                        }
+
+                        var ColorControlSliders = new SliderGroup()
+                        {
+                            SetReset = 256,
+                            Minimum = 0,
+                            Maximum = 256,
+                            Height = 200,
+                        };
+                        RightControlPanel.Add(ColorControlSliders);
+                        {
+                            SharpDX.Vector4 bufferColor = GlobalModel.RightColor;
+
+                            ColorControlSliders.SliderWraps[0].SetReset = bufferColor.X * 256;
+                            ColorControlSliders.SliderWraps[1].SetReset = bufferColor.Y * 256;
+                            ColorControlSliders.SliderWraps[2].SetReset = bufferColor.Z * 256;
+                            ColorControlSliders.Reset();
+
+                            ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.RightColor;
+                                bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                                GlobalModel.RightColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.RightColor;
+                                bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                                GlobalModel.RightColor = bufferColor;
+                            };
+                            ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                            {
+                                bufferColor = GlobalModel.RightColor;
+                                bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                                GlobalModel.RightColor = bufferColor;
+                            };
+                        }
+                    }
+                }
+
+                var MaterialControlPanel = new CollapsiblePanel("Настройки материала");
+                DisplayControlPanel.Add(MaterialControlPanel);
+                {
+                    var DiffusalControlLabel = new SelfStretchingLabel();
+                    MaterialControlPanel.Add(DiffusalControlLabel);
+                    {
+                        SetupLabel(DiffusalControlLabel);
+                        DiffusalControlLabel.Text =
+                            "Сила рассеянного света";
+                    }
+
+                    var DiffusalControlSlider = new SliderWrap()
+                    {
+                        SetReset = GlobalShaders.DiffusalComponent,
+                        Minimum = 0,
+                        Maximum = 5,
+                        IsVerticalLayout = false,
+                    };
+                    MaterialControlPanel.Add(DiffusalControlSlider);
+                    DiffusalControlSlider.Reset();
+                    {
+                        float bufferDiffusal = GlobalShaders.DiffusalComponent;
+                        DiffusalControlSlider.ValueChanged += (sender, e) =>
+                        {
+                            bufferDiffusal = GlobalShaders.DiffusalComponent;
+                            bufferDiffusal = DiffusalControlSlider.Value;
+                            GlobalShaders.DiffusalComponent = bufferDiffusal;
+                        };
+                    }
+
+                    var SpecularControlLabel = new SelfStretchingLabel();
+                    MaterialControlPanel.Add(SpecularControlLabel);
+                    {
+                        SetupLabel(SpecularControlLabel);
+                        SpecularControlLabel.Text =
+                            "Сила отражённого света";
+                    }
+
+                    var SpecularControlSlider = new SliderWrap()
+                    {
+                        SetReset = GlobalShaders.SpecularComponent,
+                        Minimum = 0,
+                        Maximum = 5,
+                        IsVerticalLayout = false,
+                    };
+                    MaterialControlPanel.Add(SpecularControlSlider);
+                    SpecularControlSlider.Reset();
+                    {
+                        float bufferSpecular = GlobalShaders.SpecularComponent;
+                        SpecularControlSlider.ValueChanged += (sender, e) =>
+                        {
+                            bufferSpecular = GlobalShaders.SpecularComponent;
+                            bufferSpecular = SpecularControlSlider.Value;
+                            GlobalShaders.SpecularComponent = bufferSpecular;
+                        };
+                    }
+
+                    var SpecularDispersionControlLabel = new SelfStretchingLabel();
+                    MaterialControlPanel.Add(SpecularDispersionControlLabel);
+                    {
+                        SetupLabel(SpecularDispersionControlLabel);
+                        SpecularDispersionControlLabel.Text =
+                            "Степень размера блика";
+                    }
+
+                    var SpecularDispersionControlSlider = new SliderWrap()
+                    {
+                        SetReset = 5 - GlobalShaders.SpecularDispersion,
+                        Minimum = 0,
+                        Maximum = 5,
+                        IsVerticalLayout = false,
+                    };
+                    MaterialControlPanel.Add(SpecularDispersionControlSlider);
+                    SpecularDispersionControlSlider.Reset();
+                    {
+                        float bufferDispersion = GlobalShaders.SpecularDispersion;
+                        SpecularDispersionControlSlider.ValueChanged += (sender, e) =>
+                        {
+                            bufferDispersion = GlobalShaders.SpecularDispersion;
+                            bufferDispersion = 5 - SpecularDispersionControlSlider.Value;
+                            GlobalShaders.SpecularDispersion = bufferDispersion;
+                        };
+                    }
+                }
+            }
+
+            OnSizeChanged(null, EventArgs.Empty);
             preActivated.RecalibrateHeight();
+        }
+
+        public void ConnectPointLight(PointLightObject newPointLight, string name)
+        {
+            var pointLightAccessPanel = new CollapsiblePanel(name);
+            _pointLightsContainer.Add(pointLightAccessPanel);
+
+            var PositionControlLabel = new SelfStretchingLabel();
+            pointLightAccessPanel.Add(PositionControlLabel);
+            {
+                SetupLabel(PositionControlLabel);
+                PositionControlLabel.Text =
+                    "Слайдеры для перемещения вдоль осей X, Y и Z соотвественно";
+            }
+
+            var PositionControlSliders = new SliderGroup()
+            {
+                SetReset = 0,
+                Minimum = -50,
+                Maximum = 50,
+                Height = 200,
+            };
+            PositionControlSliders.SliderWraps[0].SetReset = newPointLight.Position.X;
+            PositionControlSliders.SliderWraps[1].SetReset = newPointLight.Position.Y;
+            PositionControlSliders.SliderWraps[2].SetReset = newPointLight.Position.Z;
+            pointLightAccessPanel.Add(PositionControlSliders);
+            {
+                PositionControlSliders.Reset();
+
+                SharpDX.Vector4 bufferPosition = SharpDX.Vector4.Zero;
+                PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                {
+                    bufferPosition = newPointLight.Position;
+                    bufferPosition.X = PositionControlSliders.SliderWraps[0].Value;
+                    newPointLight.Position = bufferPosition;
+                };
+                PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                {
+                    bufferPosition = newPointLight.Position;
+                    bufferPosition.Y = PositionControlSliders.SliderWraps[1].Value;
+                    newPointLight.Position = bufferPosition;
+                };
+                PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                {
+                    bufferPosition = newPointLight.Position;
+                    bufferPosition.Z = PositionControlSliders.SliderWraps[2].Value;
+                    newPointLight.Position = bufferPosition;
+                };
+            }
+
+            var ColorControlLabel = new SelfStretchingLabel();
+            pointLightAccessPanel.Add(ColorControlLabel);
+            {
+                SetupLabel(ColorControlLabel);
+                ColorControlLabel.Text =
+                    "Слайдеры для изменения цвета света по компонентам RGB";
+            }
+
+            var ColorControlSliders = new SliderGroup()
+            {
+                SetReset = 256,
+                Minimum = 0,
+                Maximum = 256,
+                Height = 200,
+            };
+            ColorControlSliders.SliderWraps[0].SetReset = newPointLight.Color.X * 256;
+            ColorControlSliders.SliderWraps[1].SetReset = newPointLight.Color.Y * 256;
+            ColorControlSliders.SliderWraps[2].SetReset = newPointLight.Color.Z * 256;
+            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+            pointLightAccessPanel.Add(ColorControlSliders);
+            ColorControlSliders.Reset();
+            {
+                ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newPointLight.Color;
+                    bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                    newPointLight.Color = bufferColor;
+                };
+                ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newPointLight.Color;
+                    bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                    newPointLight.Color = bufferColor;
+                };
+                ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newPointLight.Color;
+                    bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                    newPointLight.Color = bufferColor;
+                };
+            }
+
+            var IntencyControlLabel = new SelfStretchingLabel();
+            pointLightAccessPanel.Add(IntencyControlLabel);
+            {
+                SetupLabel(IntencyControlLabel);
+                IntencyControlLabel.Text =
+                    "Слайдер для изменения интенсивности освещения";
+            }
+
+            var IntencyControlSlider = new SliderWrap()
+            {
+                SetReset = newPointLight.Color.W,
+                Minimum = 0,
+                Maximum = 1000,
+                IsVerticalLayout = false,
+            };
+            pointLightAccessPanel.Add(IntencyControlSlider);
+            IntencyControlSlider.Reset();
+            {
+                IntencyControlSlider.ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newPointLight.Color;
+                    bufferColor.W = IntencyControlSlider.Value;
+                    newPointLight.Color = bufferColor;
+                };
+            }
+
+            var lightDeleteButton = new Button()
+            {
+                FlatStyle = FlatStyle.Flat,
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.White,
+                ForeColor = Color.Black,
+                Text = "DELETE",
+                Font = GlobalConsts.BasicFont,
+                Dock = DockStyle.None,
+                Height = 26,
+            };
+            pointLightAccessPanel.Add(lightDeleteButton);
+
+            lightDeleteButton.Click += (sender, e) =>
+            {
+                _pointLightsContainer.Remove(pointLightAccessPanel);
+                GlobalLighting.RemovePointLight(name);
+            };
+        }
+
+        public void ConnectDirectionalLight(DirectionalLightObject newDirectionalLight, string name)
+        {
+            var directionalLightAccessPanel = new CollapsiblePanel(name);
+            _directionalLightsContainer.Add(directionalLightAccessPanel);
+
+            var PositionControlLabel = new SelfStretchingLabel();
+            directionalLightAccessPanel.Add(PositionControlLabel);
+            {
+                SetupLabel(PositionControlLabel);
+                PositionControlLabel.Text =
+                    "Слайдеры для перемещения вдоль осей X, Y и Z соотвественно";
+            }
+
+            var PositionControlSliders = new SliderGroup()
+            {
+                SetReset = 0,
+                Minimum = -50,
+                Maximum = 50,
+                Height = 200,
+            };
+            PositionControlSliders.SliderWraps[0].SetReset = newDirectionalLight.Direction.X;
+            PositionControlSliders.SliderWraps[1].SetReset = newDirectionalLight.Direction.Y;
+            PositionControlSliders.SliderWraps[2].SetReset = newDirectionalLight.Direction.Z;
+            directionalLightAccessPanel.Add(PositionControlSliders);
+            {
+                PositionControlSliders.Reset();
+
+                SharpDX.Vector4 bufferDirection = SharpDX.Vector4.Zero;
+                PositionControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                {
+                    bufferDirection = newDirectionalLight.Direction;
+                    bufferDirection.X = PositionControlSliders.SliderWraps[0].Value;
+                    newDirectionalLight.Direction = bufferDirection;
+                };
+                PositionControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                {
+                    bufferDirection = newDirectionalLight.Direction;
+                    bufferDirection.Y = PositionControlSliders.SliderWraps[1].Value;
+                    newDirectionalLight.Direction = bufferDirection;
+                };
+                PositionControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                {
+                    bufferDirection = newDirectionalLight.Direction;
+                    bufferDirection.Z = PositionControlSliders.SliderWraps[2].Value;
+                    newDirectionalLight.Direction = bufferDirection;
+                };
+            }
+
+            var ColorControlLabel = new SelfStretchingLabel();
+            directionalLightAccessPanel.Add(ColorControlLabel);
+            {
+                SetupLabel(ColorControlLabel);
+                ColorControlLabel.Text =
+                    "Слайдеры для изменения цвета света по компонентам RGB";
+            }
+
+            var ColorControlSliders = new SliderGroup()
+            {
+                SetReset = 256,
+                Minimum = 0,
+                Maximum = 256,
+                Height = 200,
+            };
+            ColorControlSliders.SliderWraps[0].SetReset = newDirectionalLight.Color.X * 256;
+            ColorControlSliders.SliderWraps[1].SetReset = newDirectionalLight.Color.Y * 256;
+            ColorControlSliders.SliderWraps[2].SetReset = newDirectionalLight.Color.Z * 256;
+            SharpDX.Vector4 bufferColor = SharpDX.Vector4.Zero;
+            directionalLightAccessPanel.Add(ColorControlSliders);
+            ColorControlSliders.Reset();
+            {
+                ColorControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newDirectionalLight.Color;
+                    bufferColor.X = ColorControlSliders.SliderWraps[0].Value / 256f;
+                    newDirectionalLight.Color = bufferColor;
+                };
+                ColorControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newDirectionalLight.Color;
+                    bufferColor.Y = ColorControlSliders.SliderWraps[1].Value / 256f;
+                    newDirectionalLight.Color = bufferColor;
+                };
+                ColorControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newDirectionalLight.Color;
+                    bufferColor.Z = ColorControlSliders.SliderWraps[2].Value / 256f;
+                    newDirectionalLight.Color = bufferColor;
+                };
+            }
+
+            var IntencyControlLabel = new SelfStretchingLabel();
+            directionalLightAccessPanel.Add(IntencyControlLabel);
+            {
+                SetupLabel(IntencyControlLabel);
+                IntencyControlLabel.Text =
+                    "Слайдер для изменения интенсивности освещения";
+            }
+
+            var IntencyControlSlider = new SliderWrap()
+            {
+                SetReset = newDirectionalLight.Color.W,
+                Minimum = 0,
+                Maximum = 10,
+                IsVerticalLayout = false,
+            };
+            directionalLightAccessPanel.Add(IntencyControlSlider);
+            IntencyControlSlider.Reset();
+            {
+                IntencyControlSlider.ValueChanged += (sender, e) =>
+                {
+                    bufferColor = newDirectionalLight.Color;
+                    bufferColor.W = IntencyControlSlider.Value;
+                    newDirectionalLight.Color = bufferColor;
+                };
+            }
+
+            var lightDeleteButton = new Button()
+            {
+                FlatStyle = FlatStyle.Flat,
+                TextAlign = ContentAlignment.MiddleCenter,
+                BackColor = Color.White,
+                ForeColor = Color.Black,
+                Text = "DELETE",
+                Font = GlobalConsts.BasicFont,
+                Dock = DockStyle.None,
+                Height = 26,
+            };
+            directionalLightAccessPanel.Add(lightDeleteButton);
+
+            lightDeleteButton.Click += (sender, e) =>
+            {
+                _directionalLightsContainer.Remove(directionalLightAccessPanel);
+                GlobalLighting.RemoveDirectionalLight(name);
+            };
+        }
+
+        public void ConnectGridProperty(string name)
+        {
+            _propertyComboBox.Items.Add(name);
+            if (_propertyComboBox.Items.Count == 1)
+            {
+                _propertyComboBox.SelectedIndex = 0;
+            }
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+
+            e.Graphics.FillPolygon(Brushes.White, _stretchTriangle);
         }
 
         private void SetupLabel(Label label)
@@ -521,9 +2134,71 @@ namespace LayerSlicer.Forms
             UpdateInnersWidth();
         }
 
+        protected void UpdateInnerWidth()
+        {
+            if (_scrollBar.Visible)
+            {
+                _innerWidth = Width - _scrollBar.Width - GlobalConsts.LayerStepWidth;
+            }
+            else
+            {
+                _innerWidth = Width - GlobalConsts.LayerStepWidth;
+            }
+        }
+
         protected override int GetInnerWidth()
         {
             return _innerWidth;
+        }
+
+        private void OnMouseDown(object? sender, MouseEventArgs e)
+        {
+            if ((e.Location.X + _header.Location.X) - (e.Location.Y + _header.Location.Y) 
+                >= Width - _header.Height / 2 && e.Button == MouseButtons.Left)
+            {
+                _mouseLoc = e.Location;
+                _stretching = true;
+            }
+        }
+
+        private void OnMouseUp(object? sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                _stretching = false;
+
+                _scrollBar.Location = new Point(
+                    Width - GlobalConsts.ScrollBarWidth,
+                    _button.Height);
+
+                UpdateInnerWidth();
+                OnSizeChanged(null, EventArgs.Empty);
+            }
+        }
+
+        private void OnMouseMove(object? sender, MouseEventArgs e)
+        {
+            if (_stretching)
+            {
+                Width = Math.Clamp(Width - (_mouseLoc.X - e.Location.X), GlobalConsts.InteractFormWidth / 2, MainWindow.GetRenderForm().Width);
+            }
+            _mouseLoc = e.Location;
+        }
+
+        private void CalculateSretchTriangle()
+        {
+            _stretchTriangle[0] = new PointF(_header.Width - GlobalConsts.BorderWidth, 0);
+            _stretchTriangle[1] = new PointF(_header.Width - GlobalConsts.BorderWidth, _header.Height / 2);
+            _stretchTriangle[2] = new PointF(_header.Width - GlobalConsts.BorderWidth - _header.Height / 2, 0);
+        }
+
+        protected override void OnSizeChanged(object? sender, EventArgs e)
+        {
+            if (!_stretching)
+            {
+                base.OnSizeChanged(sender, e);
+                CalculateSretchTriangle();
+            }
         }
     }
 }

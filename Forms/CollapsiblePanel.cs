@@ -15,6 +15,7 @@
         protected int _lastInnerWidth = 0;
 
         public event EventHandler? ContainmentHeightChange;
+        public event EventHandler? Toggled;
 
         public CollapsiblePanel(string title, bool state = false)
         {
@@ -82,6 +83,7 @@
 
             // Call fuction to recalculate whole object height
             RecalibrateHeight();
+            Toggled?.Invoke(this, EventArgs.Empty);
         }
 
         public void Add(Control element)
@@ -163,6 +165,17 @@
         protected virtual int GetInnerWidth()
         {
             return Width - GlobalConsts.LayerStepWidth;
+        }
+
+        public bool IsCollapsed()
+        {
+            return _isCollapsed;
+        }
+
+        public void Remove(Control? value)
+        {
+            _content.Controls.Remove(value);
+            RecalibrateHeight();
         }
     }
 }

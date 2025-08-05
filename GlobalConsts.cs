@@ -1,4 +1,5 @@
 ﻿using SharpDX;
+using System.Runtime.InteropServices;
 
 namespace LayerSlicer
 {
@@ -11,6 +12,7 @@ namespace LayerSlicer
 
         public const float FovUpperLimit = float.Pi / 1.5f; // 135 degrees
         public const float FovDownLimit = float.Pi / 18f; // 10 degrees
+        public const float FovBaseValue = float.Pi / 2; // 90 degrees
         public const double FovSensitivity = 0.9; // Value in range (0, 1)
 
         public const float StandartMouseWheelStep = 120;
@@ -38,53 +40,50 @@ namespace LayerSlicer
 
         public const int ScrollingSensitivity = -15; // Negative to invert direction
 
-        public static readonly Vector4[] CubeVertices = {
-                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f), // Front
-                new Vector4(-1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 0.0f, 1.0f),
-
-                new Vector4(-1.0f, -1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f), // Back
-                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f,  1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f, -1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f, -1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 0.0f, 1.0f),
-
-                new Vector4(-1.0f, 1.0f, -1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f), // Top
-                new Vector4(-1.0f, 1.0f,  1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f),
-                new Vector4( 1.0f, 1.0f,  1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f),
-                new Vector4(-1.0f, 1.0f, -1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f),
-                new Vector4( 1.0f, 1.0f,  1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f),
-                new Vector4( 1.0f, 1.0f, -1.0f,  1.0f), new Vector4(0.0f, 0.0f, 1.0f, 1.0f),
-
-                new Vector4(-1.0f,-1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f), // Bottom
-                new Vector4( 1.0f,-1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f,-1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f),
-                new Vector4(-1.0f,-1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f,-1.0f, -1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f),
-                new Vector4( 1.0f,-1.0f,  1.0f,  1.0f), new Vector4(1.0f, 1.0f, 0.0f, 1.0f),
-
-                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f), // Left
-                new Vector4(-1.0f, -1.0f,  1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f),
-                new Vector4(-1.0f,  1.0f,  1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f),
-                new Vector4(-1.0f, -1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f),
-                new Vector4(-1.0f,  1.0f,  1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f),
-                new Vector4(-1.0f,  1.0f, -1.0f, 1.0f), new Vector4(1.0f, 0.0f, 1.0f, 1.0f),
-
-                new Vector4( 1.0f, -1.0f, -1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f), // Right
-                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f),
-                new Vector4( 1.0f, -1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f),
-                new Vector4( 1.0f, -1.0f, -1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f),
-                new Vector4( 1.0f,  1.0f, -1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f),
-                new Vector4( 1.0f,  1.0f,  1.0f, 1.0f), new Vector4(0.0f, 1.0f, 1.0f, 1.0f),
-            };
-
         public static readonly Vector3 StandartCameraPostion = new(0, 0, -5);
 
         // Crutch to remove
-        public static readonly Vector2 Windows10MainFormPosition = new(8f, 31f); 
+        public static readonly Vector2 Windows10MainFormPosition = new(8f, 31f);
+
+        public const int MaxLightsPerType = 32;
+
+        public const int Float4BytesSize = 16;
+        public const int Float4x4BytesSize = Float4BytesSize * 4;
+
+        public static readonly Vector4 BaseAmbiendLight = new(0.2f, 0.2f, 0.2f, 1);
+
+        public const int BasicToonShaderSteps = 8;
+
+        public const int PerVertexVectors = 3;
+        public const int PerTriangleVertices = 3;
+        public const int PerLineVertices = 2;
+        public const int PerSideTriangles = 2;
+        public const int PerSideVectors = PerVertexVectors * PerTriangleVertices * PerSideTriangles;
+        public const int VertexPositionOffset = 0;
+        public const int VertexColorOffset = 1;
+        public const int VertexNormalOffset = 2;
+
+        public const string SizeRegex = @"([0-9]+) x ([0-9]+)";
+        public const string FloatRegex = @"-?[0-9]+.-?[0-9]+";
+
+        public enum PixelShaderType
+        {
+            Toon, Phong, Mesh, Strict
+        }
+
+        public enum OverlapType
+        {
+            None, Full, External
+        }
+
+        public enum DataType
+        {
+            Grid, Surface
+        }
+
+        public enum VertexShaderType
+        {
+            ExternalColorOverlap, HeightColorOverlap
+        }
     }
 }

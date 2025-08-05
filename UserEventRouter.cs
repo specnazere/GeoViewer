@@ -9,12 +9,13 @@ namespace LayerSlicer
         private static bool _isInFlyMode = false;
         private static bool _globalCameraRotating = false;
         private static bool _cameraMoving = false;
-        private static bool _CoursorMoving = false;
 
         private static DirectInput _directInput = new();
         private static Mouse _mouse;
         private static Vector2 _prevMouseLoc = Vector2.Zero;
         private static Vector2 _cursorLockPosition;
+
+        public static bool IsTexting = false;
 
         [DllImport("user32.dll")]
         static extern bool ShowCursor(bool bShow);
@@ -36,6 +37,8 @@ namespace LayerSlicer
 
         public static void KeyUp(object? sender, KeyEventArgs keys)
         {
+            if (IsTexting) return;
+
             switch ((int)keys.KeyCode)
             {
             case (int)Keys.Escape:

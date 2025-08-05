@@ -1,7 +1,9 @@
+using LayerSlicer.Lighting;
 using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
+using SharpDX.DirectInput;
 using SharpDX.DXGI;
 using SharpDX.Windows;
 
@@ -20,58 +22,82 @@ namespace LayerSlicer
         //      [STAThread]
         private static void Main()
         {
+            var format = Format.R8G8B8A8_UNorm;
+            var sampledesc = new SampleDescription(4, 0);
+
             // SwapChain description
-            var desc = new SwapChainDescription()
+            var SWdesc = new SwapChainDescription()
             {
                 BufferCount = 1,
                 ModeDescription =
                     new ModeDescription(
                         MainWindow.GetRenderForm().ClientSize.Width, 
                         MainWindow.GetRenderForm().ClientSize.Height,
-                        new Rational(60, 1), 
-                        Format.R8G8B8A8_UNorm),
+                        new Rational(60, 1),
+                        format),
                 IsWindowed = true,
                 OutputHandle = MainWindow.GetRenderForm().Handle,
-                SampleDescription = new SampleDescription(1, 0),
+                SampleDescription = sampledesc,
                 SwapEffect = SwapEffect.Discard,
                 Usage = Usage.RenderTargetOutput,
             };
-
             // Create Device and SwapChain
-            Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.None, desc, out _device, out _swapChain);
+            Device.CreateWithSwapChain(DriverType.Hardware, DeviceCreationFlags.None, SWdesc, out _device, out _swapChain);
             var context = _device.ImmediateContext;
 
-            GlobalModel.VerticesBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalConsts.CubeVertices);
+            var bufferDesc = new BufferDescription
+            {
+                SizeInBytes = GlobalConsts.PerSideVectors * Utilities.SizeOf<Vector4>() * 6, // Размер в байтах
+                Usage = ResourceUsage.Dynamic,  // Динамический буфер
+                BindFlags = BindFlags.VertexBuffer,
+                CpuAccessFlags = CpuAccessFlags.Write, // Разрешить запись с CPU
+                OptionFlags = ResourceOptionFlags.None,
+                StructureByteStride = 0
+            };
+
+            GlobalModel.VerticesByTrianglesBuffer = new Buffer(
+                GetDevice(),
+                DataStream.Create(GlobalModel.CubeVerticesByTriangles, false, false),
+                bufferDesc
+            );
+            GlobalModel.VerticesByLinesBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalModel.CubeVerticesByLines);
+            GlobalModel.BoundBuffer = Buffer.Create(GetDevice(), BindFlags.VertexBuffer, GlobalModel.CubeBound);
+            GlobalSurface.ReadSurfFile("Surf");
+            GlobalSurface.AddWell("well");
 
             // Ignore all windows events
             var factory = _swapChain.GetParent<Factory>();
             factory.MakeWindowAssociation(MainWindow.GetRenderForm().Handle, WindowAssociationFlags.IgnoreAll);
 
-            // Compile Vertex and Pixel shaders
-            var vertexShaderByteCode = ShaderBytecode.CompileFromFile("shaders.fx", "VS", "vs_4_0");
-            var vertexShader = new VertexShader(_device, vertexShaderByteCode);
+            GlobalShaders.SelectStrictPixelShader();
+            GlobalShaders.SelectExternalOverlap();
+            GlobalGrid.ReadGridFile("grid.bin");
+            MainWindow.InitInteractForm();
+            GlobalGrid.ReadPropertiesFile("grid.binprops.txt");
 
-            var pixelShaderByteCode = ShaderBytecode.CompileFromFile("shaders.fx", "PS", "ps_4_0");
-            var pixelShader = new PixelShader(_device, pixelShaderByteCode);
+            var startingPointLight1 = new Lighting.Structs.PointLightObject()
+            {
+                Position = new Vector4(5, 5, 5, 1),
+                Color = new Vector4(1, 0.5f, 0.5f, 100)
+            };
+            GlobalLighting.AddPointLight(startingPointLight1, "starting1");
+            MainWindow.GetInteractForm().ConnectPointLight(startingPointLight1, "starting1");
 
-            var signature = ShaderSignature.GetInputSignature(vertexShaderByteCode);
-            // Layout from VertexShader input signature
-            var layout = new InputLayout(_device, signature, new[]
-                    {
-                        new InputElement("POSITION", 0, Format.R32G32B32A32_Float, 0, 0),
-                        new InputElement("COLOR", 0, Format.R32G32B32A32_Float, 16, 0)
-                    });
+            var startingPointLight2 = new Lighting.Structs.PointLightObject()
+            {
+                Position = new Vector4(-5, -5, -5, 1),
+                Color = new Vector4(0.5f, 0.5f, 1, 100)
+            };
+            GlobalLighting.AddPointLight(startingPointLight2, "starting2");
+            MainWindow.GetInteractForm().ConnectPointLight(startingPointLight2, "starting2");
 
-            // Create Constant Buffer
-            var contantBuffer = new Buffer(_device, Utilities.SizeOf<Matrix>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0);
-
-            // Prepare All the stages
-            context.InputAssembler.InputLayout = layout;
-            context.InputAssembler.PrimitiveTopology = PrimitiveTopology.TriangleList;
-            context.InputAssembler.SetVertexBuffers(0, new VertexBufferBinding(GlobalModel.VerticesBuffer, Utilities.SizeOf<Vector4>() * 2, 0));
-            context.VertexShader.SetConstantBuffer(0, contantBuffer);
-            context.VertexShader.Set(vertexShader);
-            context.PixelShader.Set(pixelShader);
+            var startingDirectionalLight1 = new Lighting.Structs.DirectionalLightObject()
+            {
+                Direction = new Vector4(0, 0, 5, 1),
+                Color = new Vector4(0.1f, 1f, 0.1f, 1)
+            };
+            GlobalLighting.AddDirectionalLight(startingDirectionalLight1, "starting1");
+            MainWindow.GetInteractForm().ConnectDirectionalLight(startingDirectionalLight1, "starting1");
 
             // Use clock
             GlobalUpdater.Update();
@@ -102,7 +128,7 @@ namespace LayerSlicer
 
                     // Resize the backbuffer
                     _swapChain.ResizeBuffers(
-                        desc.BufferCount, 
+                        SWdesc.BufferCount, 
                         MainWindow.GetRenderForm().ClientSize.Width, 
                         MainWindow.GetRenderForm().ClientSize.Height, 
                         Format.Unknown, SwapChainFlags.None);
@@ -121,7 +147,7 @@ namespace LayerSlicer
                         MipLevels = 1,
                         Width = MainWindow.GetRenderForm().ClientSize.Width,
                         Height = MainWindow.GetRenderForm().ClientSize.Height,
-                        SampleDescription = new SampleDescription(1, 0),
+                        SampleDescription = sampledesc,
                         Usage = ResourceUsage.Default,
                         BindFlags = BindFlags.DepthStencil,
                         CpuAccessFlags = CpuAccessFlags.None,
@@ -152,27 +178,15 @@ namespace LayerSlicer
                 // Update before render
                 GlobalUpdater.Update();
 
-                // Update WorldViewProj Matrix
-                var worldViewProj = GlobalModel.Matrix * GlobalCamera.GetMatrix();
-                worldViewProj.Transpose();
-                context.UpdateSubresource(ref worldViewProj, contantBuffer);
-
-                // Draw the cube
-                context.Draw(36, 0);
+                // Draw the cubes
+                GlobalShaders.Draw();
 
                 // Present!
                 _swapChain.Present(0, PresentFlags.None);
             });
 
             // Release all resources
-            signature.Dispose();
-            vertexShaderByteCode.Dispose();
-            vertexShader.Dispose();
-            pixelShaderByteCode.Dispose();
-            pixelShader.Dispose();
             GlobalModel.Dispose();
-            layout.Dispose();
-            contantBuffer.Dispose();
             depthBuffer.Dispose();
             depthView.Dispose();
             _renderView.Dispose();

@@ -5,13 +5,14 @@ namespace LayerSlicer
     internal static class GlobalCamera
     {
         // Camera values
-        private static float _fov = float.Pi / 2f; // 90 degrees
+        private static float _fov = GlobalConsts.FovBaseValue;
 
         private static Vector3 _position = Vector3.Zero;
         private static Vector3 _rotation = Vector3.Zero;
 
         public static event EventHandler? PositionChanged;
         public static event EventHandler? RotationChanged;
+        public static event EventHandler? FovChanged;
 
         public static float Fov
         {
@@ -19,6 +20,7 @@ namespace LayerSlicer
             set
             {
                 _fov = float.Clamp(value, GlobalConsts.FovDownLimit, GlobalConsts.FovUpperLimit);
+                FovChanged?.Invoke(null, EventArgs.Empty);
             }
         }
         public static Vector3 Position
@@ -93,7 +95,21 @@ namespace LayerSlicer
                     Matrix.RotationZ(_rotation.Z), 
                 Matrix.PerspectiveFovLH(_fov, 
                     Program.GetRenderSize().Width / 
-                    (float)Program.GetRenderSize().Height, 0.1f, 100.0f));
+                    (float)Program.GetRenderSize().Height, 0.1f, 100000.0f));
+        }
+
+        public static Matrix GetRotationMatrix()
+        {
+            return  Matrix.RotationY(-_rotation.Y) *
+                Matrix.RotationX(-_rotation.X) *
+                Matrix.RotationZ(-_rotation.Z);
+        }
+
+        public static Matrix GetProjMatrix()
+        {
+            return Matrix.PerspectiveFovLH(_fov,
+                Program.GetRenderSize().Width /
+                (float)Program.GetRenderSize().Height, 0.1f, 100000.0f);
         }
 
         internal static void GlobalShift(float X, float Y, float Z)

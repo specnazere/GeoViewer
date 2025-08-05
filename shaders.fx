@@ -1,47 +1,172 @@
-// Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
+struct PointLight
+{
+    float4 Position; // (x, y, z, 1.0) если позиция, (x, y, z, 0.0) если направление
+    float4 Color; // RGB + интенсивность
+};
+
+struct DirectionalLight
+{
+    float4 Direction; // (x, y, z, 1.0) если позиция, (x, y, z, 0.0) если направление
+    float4 Color; // RGB + интенсивность
+};
+
+cbuffer ShaderConstsInput : register(b0)
+{
+    float4x4 WorldViewProj;
+    float4x4 ModelRotationTransformation;
+    float4x4 ModelFullTransformation;
+    float4x4 CameraRotationTransformation;
+    float4x4 ProjectionTransformation;
+    float3 CameraPosition;
+    uint PointLights;
+    uint DirectionalLights;
+    float ToonShadingSteps;
+    float4 AmbiendLighting;
+    float DiffusalComponent;
+    float SpecularComponent;
+    float SpecularDispersion;
+};
+
+StructuredBuffer<PointLight> PointLightsBuffer : register(t0);
+StructuredBuffer<DirectionalLight> DirectionalLightsBuffer : register(t1);
+
 struct VS_IN
 {
-	float4 pos : POSITION;
-	float4 col : COLOR;
+    float4 pos : POSITION;
+    float4 col : COLOR;
+    float4 nor : NORMAL;
 };
 
 struct PS_IN
 {
-	float4 pos : SV_POSITION;
-	float4 col : COLOR;
+    float4 pos : SV_POSITION;
+    float4 col : COLOR;
+    float4 nor : NORMAL;
+    float4 worldPos : TEXCOORD0; // Мировые координаты вершины
+    float3 normal : TEXCOORD1; // Нормаль в мировом пространстве
 };
-
-float4x4 worldViewProj;
 
 PS_IN VS(VS_IN input)
 {
-	PS_IN output = (PS_IN)0;
+    PS_IN output = (PS_IN) 0;
 
-	output.pos = mul(input.pos, worldViewProj);
-	output.col = input.col;
+    output.pos = mul(input.pos, WorldViewProj);
+    output.col = input.col;
+    output.worldPos = mul(input.pos, ModelFullTransformation); // Переводим в мировые координаты
+    output.normal = normalize(mul(input.nor, (float3x3) ModelRotationTransformation)); // Нормаль в мировом пространстве
 
-	return output;
+    return output;
 }
 
-float4 PS(PS_IN input) : SV_Target
+float4 PS_Toon(PS_IN input) : SV_Target
 {
-	return input.col;
+    float3 viewDir = normalize((float3) input.worldPos - CameraPosition);
+    float3 normal = normalize(input.normal);
+    float4 result = AmbiendLighting * AmbiendLighting.w * input.col; // Амбиентная составляющая
+
+    for (uint i = 0; i < PointLights; i++)
+    {
+        PointLight light = PointLightsBuffer[i];
+        float3 lightDir = normalize(light.Position.xyz - input.worldPos.xyz);
+        float distance = length(light.Position.xyz - input.worldPos.xyz);
+        float attenuation = light.Color.w / (distance * distance);
+
+        // Диффузная составляющая (дискретизация)
+        float diffuseFactor = max(dot(normal, lightDir), 0.0);
+        diffuseFactor = floor(diffuseFactor * ToonShadingSteps) / (ToonShadingSteps - 1); // Разбиение на ступени
+        float4 diffuse = diffuseFactor * light.Color * input.col;
+
+        // Спекулярная составляющая (Phong)
+        float3 reflectDir = reflect(lightDir, normal);
+        float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 100);
+        specularFactor = step(0.9, specularFactor); // Резкий блик
+        float4 specular = specularFactor * light.Color;
+
+        // Суммируем вклад света с учетом затухания
+        result += (diffuse + specular) * attenuation;
+    }
+
+    for (uint i = 0; i < DirectionalLights; i++)
+    {
+        DirectionalLight light = DirectionalLightsBuffer[i];
+        float3 lightDir;
+        float attenuation = light.Color.w;
+        
+        lightDir = normalize(light.Direction.xyz);
+
+        // Диффузная составляющая (Lambert)
+        float diffuseFactor = max(dot(normal, lightDir), 0.0);
+        diffuseFactor = floor(diffuseFactor * ToonShadingSteps) / (ToonShadingSteps - 1); // Разбиение на ступени
+        float4 diffuse = diffuseFactor * light.Color * input.col;
+
+        // Спекулярная составляющая (Phong)
+        float3 reflectDir = reflect(lightDir, normal);
+        float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 100);
+        specularFactor = step(0.9, specularFactor); // Резкий блик
+        float4 specular = specularFactor * light.Color;
+
+        // Суммируем вклад света с учетом затухания
+        result += (diffuse + specular) * attenuation;
+    }
+
+    return result;
+}
+
+float4 PS_Phong(PS_IN input) : SV_Target
+{
+    float3 viewDir = normalize((float3) input.worldPos - CameraPosition);
+    float3 normal = normalize(input.normal);
+    float4 result = AmbiendLighting * AmbiendLighting.w * input.col; //
+
+    for (uint i = 0; i < PointLights; i++)
+    {
+        PointLight light = PointLightsBuffer[i];
+        float3 lightDir;
+        float attenuation = light.Color.w;
+        
+        lightDir = light.Position.xyz - input.worldPos.xyz;
+        float distance = length(lightDir);
+        lightDir = normalize(lightDir);
+        attenuation /= distance * distance;
+
+        //
+        float diffuseFactor = max(dot(normal, lightDir), 0.0);
+        float4 diffuse = diffuseFactor * light.Color * input.col;
+
+        //
+        float3 reflectDir = reflect(lightDir, normal);
+        float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 100);
+        float4 specular = specularFactor * light.Color;
+
+        //
+        result += (diffuse * DiffusalComponent + specular * SpecularComponent) * attenuation;
+    }
+
+    for (uint i = 0; i < DirectionalLights; i++)
+    {
+        DirectionalLight light = DirectionalLightsBuffer[i];
+        float3 lightDir;
+        float attenuation = light.Color.w;
+        
+        lightDir = normalize(light.Direction.xyz);
+
+        //
+        float diffuseFactor = max(dot(normal, lightDir), 0.0);
+        float4 diffuse = diffuseFactor * light.Color * input.col;
+
+        //
+        float3 reflectDir = reflect(lightDir, normal);
+        float specularFactor = pow(max(dot(viewDir, reflectDir), 0.0), 100);
+        float4 specular = specularFactor * light.Color;
+
+        //
+        result += (diffuse * DiffusalComponent + specular * SpecularComponent) * attenuation;
+    }
+
+    return result;
+}
+
+float4 PS_Mesh(PS_IN input) : SV_Target
+{
+    return input.col;
 }

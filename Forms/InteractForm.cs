@@ -1290,7 +1290,7 @@ namespace LayerSlicer.Forms
                             GlobalGrid.DrawSlices = !FullGridCheckBox.Checked;
                         };
 
-                        int[] savedSlices = { 0, 0, 0 };
+                        int[] savedSlices = { -1, -1, -1 };
 
                         // Создаем CheckBox
                         CheckBox SliceXCheckBox = new CheckBox();
@@ -1304,6 +1304,7 @@ namespace LayerSlicer.Forms
                             if (SliceXCheckBox.Checked)
                             {
                                 GlobalGrid.DrawableSlices[0] = savedSlices[0];
+                                savedSlices[0] = -1;
                             }
                             else
                             {
@@ -1324,6 +1325,7 @@ namespace LayerSlicer.Forms
                             if (SliceYCheckBox.Checked)
                             {
                                 GlobalGrid.DrawableSlices[1] = savedSlices[1];
+                                savedSlices[1] = -1;
                             }
                             else
                             {
@@ -1344,6 +1346,7 @@ namespace LayerSlicer.Forms
                             if (SliceZCheckBox.Checked)
                             {
                                 GlobalGrid.DrawableSlices[2] = savedSlices[2];
+                                savedSlices[2] = -1;
                             }
                             else
                             {
@@ -1376,15 +1379,36 @@ namespace LayerSlicer.Forms
 
                             SelectedSlicesControlSliders.SliderWraps[0].ValueChanged += (sender, e) =>
                             {
-                                GlobalGrid.DrawableSlices[0] = (int)SelectedSlicesControlSliders.SliderWraps[0].Value - 1;
+                                if (savedSlices[0] == -1)
+                                {
+                                    GlobalGrid.DrawableSlices[0] = (int)SelectedSlicesControlSliders.SliderWraps[0].Value - 1;
+                                }
+                                else
+                                {
+                                    savedSlices[0] = (int)SelectedSlicesControlSliders.SliderWraps[0].Value - 1;
+                                }
                             };
                             SelectedSlicesControlSliders.SliderWraps[1].ValueChanged += (sender, e) =>
                             {
-                                GlobalGrid.DrawableSlices[1] = (int)SelectedSlicesControlSliders.SliderWraps[1].Value - 1;
+                                if (savedSlices[1] == -1)
+                                {
+                                    GlobalGrid.DrawableSlices[1] = GlobalGrid.SizesXYZ[1] - (int)SelectedSlicesControlSliders.SliderWraps[1].Value - 1;
+                                }
+                                else
+                                {
+                                    savedSlices[1] = (int)SelectedSlicesControlSliders.SliderWraps[1].Value - 1;
+                                }
                             };
                             SelectedSlicesControlSliders.SliderWraps[2].ValueChanged += (sender, e) =>
                             {
-                                GlobalGrid.DrawableSlices[2] = (int)SelectedSlicesControlSliders.SliderWraps[2].Value - 1;
+                                if (savedSlices[2] == -1)
+                                {
+                                    GlobalGrid.DrawableSlices[2] = (int)SelectedSlicesControlSliders.SliderWraps[2].Value - 1;
+                                }
+                                else
+                                {
+                                    savedSlices[2] = (int)SelectedSlicesControlSliders.SliderWraps[2].Value - 1;
+                                }
                             };
                         }
                     }
